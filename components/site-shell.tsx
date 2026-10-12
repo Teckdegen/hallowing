@@ -48,8 +48,8 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         >
           <MenuIcon />
         </button>
-        <Link href="/" className="shrink-0 text-base font-black tracking-tight text-accent sm:text-lg">
-          HALLOWING
+        <Link href="/" className="shrink-0" aria-label="cynera">
+          <img src="/logo.png" alt="" className="h-11 w-11 object-contain" />
         </Link>
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <SearchField id="site-search" />

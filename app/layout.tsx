@@ -19,6 +19,10 @@ export const metadata: Metadata = {
     template: "%s · Hallowing",
   },
   description: "Live streams for two weeks. Watch creators and back them with support.",
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
