@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const description = "Horror and prank videos from real creators. Watch, comment, and send gifts on Robinhood Chain.";
+const description = "Horror and prank haunts from real creators. Watch, comment, and send gifts on Robinhood Chain.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),

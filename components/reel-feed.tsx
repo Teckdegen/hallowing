@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ReelActions } from "@/components/reel-actions";
 import { ReelVideo } from "@/components/reel-video";
-import { LiveBadge } from "@/components/live-badge";
 import { markSeen } from "@/lib/seen";
 import { timeAgo, type Video } from "@/lib/videos";
 
@@ -97,9 +96,8 @@ function ReelSlide({ video, itemIndex, active, near }: { video: Video; itemIndex
     <section data-reel={itemIndex} className="relative h-full snap-start snap-always bg-black">
       <div data-reel-fade={String(itemIndex)} className="absolute inset-0">
         <div className="absolute inset-0">
-          {near && video.src ? <ReelVideo src={video.src} poster={video.poster} title={video.title} active={active} paused={paused} /> : null}
+          {near && video.src ? <ReelVideo src={video.src} title={video.title} active={active} paused={paused} /> : null}
         </div>
-        {video.live ? <LiveBadge live={video.live} className="absolute top-4 left-3 z-20 sm:left-5" /> : null}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/15 to-black/45" />
         <button
           type="button"
@@ -131,12 +129,12 @@ function ReelSlide({ video, itemIndex, active, near }: { video: Video; itemIndex
               ))}
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-white/50">{video.live === "live" ? `Live since ${timeAgo(video.createdAt).replace(" ago", "")}` : timeAgo(video.createdAt)}</p>
+          <p className="mt-1 text-xs text-white/50">{timeAgo(video.createdAt)}</p>
           <Link
             href={`/watch/${video.id}`}
             className="mt-3 inline-flex rounded-full bg-accent px-3 py-2 text-xs font-semibold text-[#1a0c08] hover:brightness-110 sm:text-sm"
           >
-            {video.live === "live" ? "Join stream" : "Watch"}
+            Watch
           </Link>
         </div>
         <ReelActions

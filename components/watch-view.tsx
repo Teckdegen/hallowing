@@ -6,8 +6,6 @@ import { useAuth } from "@/components/auth-provider";
 import { Avatar } from "@/components/avatar";
 import { CommentThread } from "@/components/comment-thread";
 import { GiftSheet } from "@/components/gift-sheet";
-import { LiveBadge } from "@/components/live-badge";
-import { isStream, useStreamSource } from "@/components/reel-video";
 import { WatchSkeleton } from "@/components/skeletons";
 import { VideoTile } from "@/components/video-tile";
 import { activeChain } from "@/lib/chain";
@@ -41,17 +39,6 @@ export function WatchView({ id }: { id: string }) {
       cancelled = true;
     };
   }, [id, ready, viewer]);
-
-  const onAir = video?.live === "live";
-  useEffect(() => {
-    if (!onAir) return;
-    const timer = window.setInterval(() => {
-      void fetchVideo(id, viewer).then((next) => {
-        if (next && next.live !== "live") setLoaded({ key: `${id}:${viewer}`, video: next });
-      });
-    }, 20000);
-    return () => window.clearInterval(timer);
-  }, [id, onAir, viewer]);
 
   if (video === undefined) return <WatchSkeleton />;
   if (video === null) return <MissingVideo />;
@@ -99,7 +86,7 @@ export function WatchView({ id }: { id: string }) {
 
           <section className="rounded-2xl bg-card px-4 py-4">
             <h2 className="text-xs font-semibold text-muted">
-              {video.live === "live" ? `Live since ${timeAgo(video.createdAt).replace(" ago", "")}` : video.live === "replay" ? `Streamed ${timeAgo(video.createdAt)}` : `Posted ${timeAgo(video.createdAt)}`}
+              {`Posted ${timeAgo(video.createdAt)}`}
             </h2>
             {video.description ? <p className="mt-2 max-w-2xl text-sm leading-6 whitespace-pre-wrap">{video.description}</p> : null}
           </section>
@@ -133,8 +120,6 @@ export function WatchView({ id }: { id: string }) {
 
 function WatchPlayer({ video }: { video: Video }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const stream = isStream(video.src);
-  useStreamSource(ref, video.src);
 
   useEffect(() => {
     const node = ref.current;
@@ -152,18 +137,16 @@ function WatchPlayer({ video }: { video: Video }) {
         <video
           key={video.src}
           ref={ref}
-          src={stream ? undefined : video.src}
-          poster={video.poster ?? undefined}
+          src={video.src}
           aria-label={video.title}
           controls
           playsInline
-          loop={!stream}
+          loop
           className="max-h-[calc(100dvh-7rem)] w-full"
         />
       ) : (
-        <p className="py-24 text-sm text-white/70">{video.live ? "The replay is still processing. Check back in a minute." : "This video is still processing."}</p>
+        <p className="py-24 text-sm text-white/70">This haunt is still processing.</p>
       )}
-      {video.live ? <LiveBadge live={video.live} className="absolute top-3 left-3" /> : null}
     </div>
   );
 }

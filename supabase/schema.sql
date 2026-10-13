@@ -50,6 +50,14 @@ alter table public.posts add column if not exists mux_live_stream_id text;
 alter table public.posts add column if not exists mux_playback_id text;
 alter table public.posts add column if not exists mux_asset_id text;
 alter table public.posts add column if not exists mux_recording_id text;
+-- The mux_* columns hold the provider's ids for either provider: on Cloudflare, the live input id and the recorded video id.
+alter table public.posts add column if not exists live_provider text not null default 'mux';
+alter table public.posts add column if not exists live_source text not null default 'app';
+alter table public.posts add column if not exists live_seen_at timestamptz;
+alter table public.posts drop constraint if exists posts_live_provider_check;
+alter table public.posts add constraint posts_live_provider_check check (live_provider in ('mux', 'cloudflare'));
+alter table public.posts drop constraint if exists posts_live_source_check;
+alter table public.posts add constraint posts_live_source_check check (live_source in ('app', 'browser'));
 alter table public.posts drop constraint if exists posts_kind_check;
 alter table public.posts add constraint posts_kind_check check (kind in ('video', 'live'));
 alter table public.posts drop constraint if exists posts_live_status_check;
@@ -58,7 +66,7 @@ alter table public.posts add constraint posts_live_status_check check (live_stat
 create index if not exists posts_feed_idx on public.posts (watch, created_at desc);
 create index if not exists posts_live_idx on public.posts (mux_live_stream_id, created_at desc) where kind = 'live';
 
--- One reusable Mux live stream per creator. Stream keys are secrets: no anon or authenticated access,
+-- One reusable live stream (Mux) or live input (Cloudflare) per creator. Stream keys are secrets: no anon or authenticated access,
 -- only the server (secret key) reads this table.
 create table if not exists public.live_channels (
   privy_id text primary key references public.profiles (privy_id),
@@ -68,8 +76,29 @@ create table if not exists public.live_channels (
   created_at timestamptz not null default now()
 );
 
+alter table public.live_channels add column if not exists provider text not null default 'mux';
+alter table public.live_channels add column if not exists ingest_url text;
+alter table public.live_channels add column if not exists webrtc_url text;
+
 alter table public.live_channels enable row level security;
 revoke all on public.live_channels from anon, authenticated;
+
+-- Gas sent from the sponsor wallet to users' Privy wallets. Server only.
+create table if not exists public.gas_topups (
+  id uuid primary key default gen_random_uuid(),
+  privy_id text not null,
+  wallet text not null,
+  amount_wei text not null,
+  amount_usd numeric not null,
+  eth_usd numeric not null,
+  tx_hash text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists gas_topups_wallet_idx on public.gas_topups (wallet, created_at desc);
+
+alter table public.gas_topups enable row level security;
+revoke all on public.gas_topups from anon, authenticated;
 create index if not exists posts_username_idx on public.posts (username, created_at desc);
 create index if not exists posts_hashtags_idx on public.posts using gin (hashtags);
 

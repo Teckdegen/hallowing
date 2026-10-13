@@ -7,7 +7,6 @@ import { useAuth } from "@/components/auth-provider";
 import { Avatar } from "@/components/avatar";
 import { BrandBadge, BrandGlyph, brandName } from "@/components/brand-icons";
 import { GiftSheet } from "@/components/gift-sheet";
-import { LiveBadge } from "@/components/live-badge";
 import { VideoThumb } from "@/components/reel-video";
 import { ProfileSkeleton } from "@/components/skeletons";
 import {
@@ -25,7 +24,7 @@ import {
 import { fetchHallowBalance, fetchVaultState, formatTokenAmount } from "@/lib/vault";
 import { fetchChannelVideos, type Video } from "@/lib/videos";
 
-const tabs = ["Videos", "About"] as const;
+const tabs = ["Haunts", "About"] as const;
 type Tab = (typeof tabs)[number];
 
 export function ChannelView({ handle }: { handle: string }) {
@@ -33,7 +32,7 @@ export function ChannelView({ handle }: { handle: string }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Video[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
-  const [tab, setTab] = useState<Tab>("Videos");
+  const [tab, setTab] = useState<Tab>("Haunts");
   const [editing, setEditing] = useState(false);
   const [following, setFollowing] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -99,7 +98,7 @@ export function ChannelView({ handle }: { handle: string }) {
         <h1 className="text-2xl font-semibold">That channel is not here.</h1>
         <p className="mt-3 text-sm leading-6 text-muted">This username does not have a Hallowing channel yet.</p>
         <Link href="/" className="mt-6 inline-flex h-10 w-fit items-center rounded-full bg-accent px-4 text-sm font-semibold text-[#1a0c08]">
-          Back to live
+          Back home
         </Link>
       </main>
     );
@@ -111,7 +110,6 @@ export function ChannelView({ handle }: { handle: string }) {
   const banner = bannerPreview ?? publicMediaUrl("images", profile.banner_path);
   const showEditor = editing && owner;
   const visible = owner ? posts : posts.filter((post) => post.watch === "Everyone");
-  const onAir = visible.find((post) => post.live === "live");
 
   return (
     <main className="mx-auto w-full max-w-[1100px] px-4 pt-4 pb-12 lg:px-6">
@@ -127,14 +125,7 @@ export function ChannelView({ handle }: { handle: string }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="relative -mt-14 w-fit sm:-mt-16">
-          {onAir && !showEditor ? (
-            <Link href={`/watch/${onAir.id}`} aria-label={`${name} is live. Watch now`} className="block rounded-full ring-4 ring-[#e5322d]">
-              <Avatar src={avatar} seed={profile.username} alt={`${name} profile photo`} className="size-24 border-4 border-background sm:size-32" />
-              <LiveBadge live="live" className="absolute -bottom-1 left-1/2 -translate-x-1/2" />
-            </Link>
-          ) : (
-            <Avatar src={avatar} seed={profile.username} alt={`${name} profile photo`} className="size-24 border-4 border-background sm:size-32" />
-          )}
+          <Avatar src={avatar} seed={profile.username} alt={`${name} profile photo`} className="size-24 border-4 border-background sm:size-32" />
           {showEditor ? (
             <ImageButton label="Change photo" className="absolute right-1 bottom-1 grid size-8 place-items-center rounded-full border border-line bg-card text-foreground" icon onPick={(file) => rememberFile(file, "avatar")} />
           ) : null}
@@ -144,7 +135,7 @@ export function ChannelView({ handle }: { handle: string }) {
           <p className="mt-1 text-sm text-muted">
             @{profile.username}
             <span className="px-1.5">·</span>
-            {visible.length} {visible.length === 1 ? "video" : "videos"}
+            {visible.length} {visible.length === 1 ? "haunt" : "haunts"}
           </p>
           {profile.evm_wallet ? <WalletLine address={profile.evm_wallet} /> : null}
           {showEditor ? null : <ChannelCopy profile={profile} onMore={() => setTab("About")} />}
@@ -152,9 +143,8 @@ export function ChannelView({ handle }: { handle: string }) {
         <div className="sm:pt-3">
           {owner && !showEditor ? (
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/live" className="inline-flex h-9 items-center gap-2 rounded-full bg-[#e5322d] px-4 text-sm font-semibold text-white hover:brightness-110">
-                <span className="size-2 rounded-full bg-white" aria-hidden />
-                {onAir ? "Back to stream" : "Go live"}
+              <Link href="/create" className="inline-flex h-9 items-center rounded-full bg-accent px-4 text-sm font-semibold text-[#1a0c08] hover:brightness-110">
+                Upload a haunt
               </Link>
               <button type="button" onClick={() => setEditing(true)} className="h-9 rounded-full border border-line px-4 text-sm font-medium hover:bg-foreground/5">
                 Edit profile
@@ -216,7 +206,7 @@ export function ChannelView({ handle }: { handle: string }) {
             })}
           </div>
           <div className="py-6" role="tabpanel">
-            {tab === "Videos" ? <VideoGrid posts={visible} owner={owner} /> : <About profile={profile} />}
+            {tab === "Haunts" ? <VideoGrid posts={visible} owner={owner} /> : <About profile={profile} />}
           </div>
         </>
       )}
@@ -586,10 +576,10 @@ function VideoGrid({ posts, owner }: { posts: Video[]; owner: boolean }) {
   if (posts.length === 0) {
     return (
       <div>
-        <p className="text-sm text-muted">No videos yet.</p>
+        <p className="text-sm text-muted">No haunts yet.</p>
         {owner ? (
           <Link href="/create" className="mt-4 inline-flex h-9 items-center rounded-full bg-accent px-4 text-sm font-semibold text-[#1a0c08]">
-            Upload a video
+            Upload a haunt
           </Link>
         ) : null}
       </div>
@@ -613,8 +603,7 @@ function VideoCard({ post }: { post: Video }) {
   return (
     <article>
       <Link href={`/watch/${post.id}`} data-ghost-haunt className="group relative block aspect-video overflow-hidden rounded-xl bg-black">
-        <VideoThumb src={post.src} poster={post.poster} title={title} className="h-full w-full transition-transform duration-300 group-hover:scale-[1.03]" />
-        {post.live ? <LiveBadge live={post.live} className="absolute top-2 left-2" /> : null}
+        <VideoThumb src={post.src} title={title} className="h-full w-full transition-transform duration-300 group-hover:scale-[1.03]" />
         {badge ? <span className="absolute top-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">{badge}</span> : null}
       </Link>
       <Link href={`/watch/${post.id}`} className="mt-2 line-clamp-2 block text-sm font-medium hover:text-accent">

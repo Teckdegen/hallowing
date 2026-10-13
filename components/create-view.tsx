@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth-provider";
 import { channelName, savePost, searchProfiles, type Profile } from "@/lib/profiles";
 import { CreateSkeleton } from "@/components/skeletons";
 
-const steps = ["Details", "Video elements", "Checks", "Visibility"] as const;
+const steps = ["Details", "Elements", "Checks", "Visibility"] as const;
 type Step = (typeof steps)[number];
 
 const visibilities = ["Private", "Unlisted", "Public"] as const;
@@ -17,10 +17,15 @@ const commentChoices = ["Allow all comments", "Hold for review", "Disable commen
 type Comments = (typeof commentChoices)[number];
 
 const visibilityCopy: Record<Visibility, string> = {
-  Private: "Only you and people you choose can watch your video",
-  Unlisted: "Anyone with the video link can watch your video",
-  Public: "Everyone can watch your video",
+  Private: "Only you and people you choose can watch your haunt",
+  Unlisted: "Anyone with the link can watch your haunt",
+  Public: "Everyone can watch your haunt",
 };
+
+/** About 60 seconds of clean 1080p at 4 Mbps. */
+const maxVideoBytes = 30 * 1024 * 1024;
+/** A haunt runs up to a minute and a half. */
+const maxHauntSeconds = 90;
 
 const watchFor: Record<Visibility, string> = {
   Public: "Everyone",
@@ -85,10 +90,24 @@ export function CreateView() {
     };
   }, [personTerm, user?.username]);
 
-  function chooseFile(next: File | null) {
+  async function chooseFile(next: File | null) {
     if (!next) return;
+    if (next.size > maxVideoBytes) {
+      setNotice(`Use a haunt under ${maxVideoBytes / 1024 / 1024} MB. This one is ${Math.ceil(next.size / 1024 / 1024)} MB.`);
+      return;
+    }
+    let duration = Number.NaN;
+    try {
+      duration = await hauntDuration(next);
+    } catch {
+      setNotice("Could not read that file. Try another MP4.");
+      return;
+    }
+    if (!Number.isFinite(duration) || duration > maxHauntSeconds) {
+      setNotice(`A haunt has to be 1:30 or shorter. This one is ${clock(duration)}.`);
+      return;
+    }
     setFile(next);
-    setTitle((current) => current || next.name.replace(/\.[^.]+$/, "").slice(0, 100));
     setStep("Details");
     setNotice(null);
   }
@@ -125,15 +144,15 @@ export function CreateView() {
       return;
     }
     if (step === "Details") {
-      const missingTitle = title.trim() ? null : "Add a title to your video.";
-      const missingAudience = kids === null ? "Select if this video is made for kids." : null;
+      const missingTitle = title.trim() ? null : "Add a title to your haunt.";
+      const missingAudience = kids === null ? "Select if this haunt is made for kids." : null;
       setTitleError(missingTitle);
       setAudienceError(missingAudience);
       if (missingTitle || missingAudience) return;
-      setStep("Video elements");
+      setStep("Elements");
       return;
     }
-    if (step === "Video elements") setStep("Checks");
+    if (step === "Elements") setStep("Checks");
     else if (step === "Checks") setStep("Visibility");
   }
 
@@ -146,7 +165,7 @@ export function CreateView() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (!user?.wallet || !user.username || !file || pending) return;
-    const missingTitle = title.trim() ? null : "Add a title to your video.";
+    const missingTitle = title.trim() ? null : "Add a title to your haunt.";
     setTitleError(missingTitle);
     if (missingTitle) {
       setStep("Details");
@@ -182,7 +201,7 @@ export function CreateView() {
     <main className="mx-auto w-full max-w-[980px] px-3 py-4 sm:px-4 sm:py-6">
       <form noValidate onSubmit={(event) => void onSubmit(event)} className="overflow-hidden rounded-lg border border-line bg-card shadow-xl">
         <header className="border-b border-line px-4 py-3 sm:px-6">
-          <h1 className="text-base font-medium sm:text-lg">{file ? file.name : "Upload videos"}</h1>
+          <h1 className="text-base font-medium sm:text-lg">{file ? title.trim() || "Untitled haunt" : "Upload a haunt"}</h1>
           {file ? (
             <>
               <p className="mt-1 text-xs text-muted">{pending ? "Uploading" : "Upload complete. No issues found."}</p>
@@ -204,8 +223,8 @@ export function CreateView() {
             className={`flex min-h-[420px] flex-col items-center justify-center px-6 py-16 text-center ${dragging ? "bg-accent/10" : ""}`}
           >
             <UploadMark />
-            <p className="mt-5 text-base">Drag and drop video files to upload</p>
-            <p className="mt-2 max-w-sm text-sm text-muted">Your videos will be private until you publish them.</p>
+            <p className="mt-5 text-base">Drag and drop a haunt to upload</p>
+            <p className="mt-2 max-w-sm text-sm text-muted">Up to 1:30. It stays private until you publish it.</p>
             <label className="mt-6 cursor-pointer">
               <span className="inline-flex h-9 items-center rounded-sm bg-accent px-4 text-sm font-medium tracking-wide text-[#1a0c08]">
                 SELECT FILES
@@ -217,9 +236,14 @@ export function CreateView() {
                 onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
               />
             </label>
+            {notice ? (
+              <p role="alert" className="mt-4 text-sm text-accent">
+                {notice}
+              </p>
+            ) : null}
             {!user ? (
               <p className="mt-4 text-sm text-muted">
-                {configured ? "Log in to upload a video." : "Add NEXT_PUBLIC_PRIVY_APP_ID to .env.local, then restart the app."}
+                {configured ? "Log in to upload a haunt." : "Add NEXT_PUBLIC_PRIVY_APP_ID to .env.local, then restart the app."}
               </p>
             ) : !user.username || !user.wallet ? (
               <p className="mt-4 text-sm text-muted">Choose a username once your Solana wallet is ready.</p>
@@ -246,13 +270,13 @@ export function CreateView() {
                       value={description}
                       onChange={(event) => setDescription(event.target.value.slice(0, 5000))}
                       rows={5}
-                      placeholder="Tell viewers about your video"
+                      placeholder="Tell viewers about your haunt"
                       className={`${inputClass(false)} min-h-28 resize-y py-2`}
                     />
                   </Field>
                   <div>
                     <p className="text-sm font-medium">Thumbnail</p>
-                    <p className="mt-1 text-xs text-muted">Select or upload a picture that shows what is in your video.</p>
+                    <p className="mt-1 text-xs text-muted">Select or upload a picture that shows what is in your haunt.</p>
                     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       <div className="grid aspect-video place-items-center rounded border border-dashed border-line text-xs text-muted">Upload</div>
                       {preview ? <video src={preview} aria-label="Thumbnail from video" className="aspect-video w-full rounded object-cover" muted /> : null}
@@ -260,7 +284,7 @@ export function CreateView() {
                   </div>
                   <fieldset>
                     <legend className="text-sm font-medium">Audience</legend>
-                    <p className="mt-1 text-xs text-muted">This video is set to not made for kids, unless you say otherwise.</p>
+                    <p className="mt-1 text-xs text-muted">This haunt is set to not made for kids, unless you say otherwise.</p>
                     <label className="mt-3 flex items-center gap-3 text-sm">
                       <input type="radio" name="kids" checked={kids === true} onChange={() => { setKids(true); setAudienceError(null); }} className="m-0 size-4 shrink-0" />
                       Yes, it is made for kids
@@ -342,10 +366,10 @@ export function CreateView() {
                 </div>
               ) : null}
 
-              {step === "Video elements" ? (
+              {step === "Elements" ? (
                 <div>
-                  <h2 className="text-base font-medium">Add video elements</h2>
-                  <p className="mt-2 text-sm text-muted">Cards and an end screen can point viewers to another video. You can add those after this video is posted.</p>
+                  <h2 className="text-base font-medium">Add elements</h2>
+                  <p className="mt-2 text-sm text-muted">Cards and an end screen can point viewers to another haunt. You can add those after this one is posted.</p>
                 </div>
               ) : null}
 
@@ -368,7 +392,7 @@ export function CreateView() {
               {step === "Visibility" ? (
                 <fieldset>
                   <legend className="text-base font-medium">Visibility</legend>
-                  <p className="mt-1 text-sm text-muted">Choose when to publish and who can watch your video.</p>
+                  <p className="mt-1 text-sm text-muted">Choose when to publish and who can watch your haunt.</p>
                   <div className="mt-4 flex flex-col gap-3">
                     {visibilities.map((option) => (
                       <label key={option} className={`flex cursor-pointer items-center gap-3 rounded border px-3 py-3 ${option === visibility ? "border-accent" : "border-line"}`}>
@@ -388,7 +412,7 @@ export function CreateView() {
               <div className="overflow-hidden rounded bg-black">
                 <video src={preview ?? undefined} aria-label="Video preview" className="aspect-video w-full" controls playsInline />
               </div>
-              <p className="mt-3 text-xs text-muted">Video link</p>
+              <p className="mt-3 text-xs text-muted">File</p>
               <p className="truncate text-sm">{file.name}</p>
             </aside>
           </div>
@@ -479,6 +503,30 @@ function ChipList({ items, onRemove }: { items: string[]; onRemove: (item: strin
       ))}
     </ul>
   );
+}
+
+function hauntDuration(file: File) {
+  return new Promise<number>((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      URL.revokeObjectURL(url);
+      resolve(duration);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("unreadable"));
+    };
+    video.src = url;
+  });
+}
+
+function clock(seconds: number) {
+  if (!Number.isFinite(seconds)) return "unreadable";
+  const total = Math.round(seconds);
+  return `${Math.floor(total / 60)}:${(total % 60).toString().padStart(2, "0")}`;
 }
 
 function UploadMark() {

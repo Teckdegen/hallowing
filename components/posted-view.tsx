@@ -11,12 +11,12 @@ import { fetchVideo, type Video } from "@/lib/videos";
 const copyByVisibility: Record<string, { eyebrow: string; title: string; body: string }> = {
   Everyone: {
     eyebrow: "Posted",
-    title: "Your video is live",
+    title: "Your haunt is up",
     body: "It's on your channel and in the feed now. Share the link to get the first scares in.",
   },
   Friends: {
     eyebrow: "Unlisted",
-    title: "Your video is ready to share",
+    title: "Your haunt is ready to share",
     body: "It stays out of the feed and search. Anyone with the link can watch.",
   },
   "Only you": {
@@ -57,8 +57,8 @@ export function PostedView() {
     <div className="flex w-full flex-col items-center text-center">
       <div className="relative aspect-[9/16] w-40 overflow-hidden rounded-2xl border border-line bg-card shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)] sm:w-48">
         {video ? (
-          <Link href={`/watch/${video.id}`} aria-label="View video" className="block h-full w-full">
-            <VideoThumb src={video.src} poster={video.poster} title={video.title} className="h-full w-full object-cover" />
+          <Link href={`/watch/${video.id}`} aria-label="View haunt" className="block h-full w-full">
+            <VideoThumb src={video.src} title={video.title} className="h-full w-full object-cover" />
           </Link>
         ) : (
           <div className="skeleton h-full w-full" />
@@ -87,14 +87,14 @@ export function PostedView() {
             href={`/watch/${video.id}`}
             className="inline-flex h-11 items-center justify-center rounded-full bg-accent px-5 text-sm font-semibold text-[#1a0c08]"
           >
-            View video
+            View haunt
           </Link>
         ) : (
           <span className="skeleton h-11 rounded-full" />
         )}
         {video && shareable ? <ShareRow video={video} /> : null}
         <Link href="/create" className="mt-1 text-sm text-muted transition hover:text-foreground">
-          Upload another
+          Upload another haunt
         </Link>
       </div>
     </div>
@@ -158,14 +158,14 @@ function PostedFallback() {
       <div className="mt-6">
         <Eyebrow>Posted</Eyebrow>
       </div>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Your video is posted</h1>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Your haunt is posted</h1>
       <p className="mt-3 text-sm leading-6 text-muted">Find it on your channel anytime.</p>
       <div className="mt-7 flex flex-wrap justify-center gap-2">
         <Link href={channel} className="inline-flex h-11 items-center rounded-full bg-accent px-5 text-sm font-semibold text-[#1a0c08]">
           Go to your channel
         </Link>
         <Link href="/create" className="inline-flex h-11 items-center rounded-full border border-line bg-card px-5 text-sm">
-          Upload another
+          Upload another haunt
         </Link>
       </div>
     </div>

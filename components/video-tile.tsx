@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
-import { LiveBadge } from "@/components/live-badge";
 import { VideoThumb } from "@/components/reel-video";
 import { timeAgo, type Video } from "@/lib/videos";
 
@@ -12,18 +11,16 @@ export function VideoTile({ video, showCreator = true, wide = false }: { video: 
         data-ghost-haunt
         className={`group relative block overflow-hidden rounded-xl bg-foreground/5 ${wide ? "aspect-video" : "aspect-[3/4]"}`}
       >
-        <VideoThumb src={video.src} poster={video.poster} title={video.title} className="h-full w-full transition-transform duration-300 group-hover:scale-[1.03]" />
+        <VideoThumb src={video.src} title={video.title} className="h-full w-full transition-transform duration-300 group-hover:scale-[1.03]" />
         <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/75 to-transparent" aria-hidden />
-        {video.live ? (
-          <LiveBadge live={video.live} className="absolute top-2 left-2" />
-        ) : video.watch === "Friends" ? (
+        {video.watch === "Friends" ? (
           <span className="absolute top-2 left-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">Unlisted</span>
         ) : video.watch === "Only you" ? (
           <span className="absolute top-2 left-2 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white">Private</span>
         ) : null}
         <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 text-xs font-semibold text-white">
           <PlayIcon />
-          {video.live === "live" ? "Live now" : timeAgo(video.createdAt)}
+          {timeAgo(video.createdAt)}
         </span>
       </Link>
       <Link href={`/watch/${video.id}`} className="mt-2 line-clamp-2 text-sm leading-5 font-medium hover:text-accent">

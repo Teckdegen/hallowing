@@ -14,8 +14,7 @@ import { fetchCreators, type CreatorSummary } from "@/lib/videos";
 const nav = [
   { href: "/", label: "Home", icon: "home" },
   { href: "/browse#creators", label: "Following", icon: "heart" },
-  { href: "/create", label: "Create", icon: "plus" },
-  { href: "/live", label: "Go live", icon: "live" },
+  { href: "/create", label: "Upload a haunt", icon: "plus" },
   { href: "/leaderboard", label: "Leaderboard", icon: "cup" },
   { href: "/how-it-works", label: "How it works", icon: "info" },
 ] as const;
@@ -395,16 +394,8 @@ function SearchIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-function NavIcon({ name }: { name: "home" | "heart" | "cup" | "plus" | "info" | "live" }) {
+function NavIcon({ name }: { name: "home" | "heart" | "cup" | "plus" | "info" }) {
   const common = { width: 18, height: 18, viewBox: "0 0 16 16", "aria-hidden": true as const, className: "shrink-0" };
-  if (name === "live") {
-    return (
-      <svg {...common} className="shrink-0 text-[#e5322d]">
-        <circle cx="8" cy="8" r="2.3" fill="currentColor" />
-        <path d="M4.6 4.6a4.8 4.8 0 0 0 0 6.8M11.4 4.6a4.8 4.8 0 0 1 0 6.8M2.6 2.6a7.6 7.6 0 0 0 0 10.8M13.4 2.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    );
-  }
   if (name === "home") {
     return (
       <svg {...common}>

@@ -1,57 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
-
-export function isStream(src: string | null) {
-  return Boolean(src && /\.m3u8(\?|$)/.test(src));
-}
-
-/** Attaches Mux HLS streams: Safari plays them natively, other browsers go through hls.js. */
-export function useStreamSource(ref: RefObject<HTMLVideoElement | null>, src: string | null) {
-  useEffect(() => {
-    const video = ref.current;
-    if (!video || !src || !isStream(src)) return;
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-      return;
-    }
-    let cancelled = false;
-    let hls: { destroy: () => void } | null = null;
-    void import("hls.js").then(({ default: Hls }) => {
-      if (cancelled) return;
-      if (!Hls.isSupported()) {
-        video.src = src;
-        return;
-      }
-      const player = new Hls({ lowLatencyMode: true });
-      player.loadSource(src);
-      player.attachMedia(video);
-      hls = player;
-    });
-    return () => {
-      cancelled = true;
-      hls?.destroy();
-    };
-  }, [ref, src]);
-}
+import { useEffect, useRef, useState } from "react";
 
 export function ReelVideo({
   src,
-  poster,
   title,
   active,
   paused,
 }: {
   src: string;
-  poster?: string | null;
   title: string;
   active: boolean;
   paused: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [wide, setWide] = useState(false);
-  const stream = isStream(src);
-  useStreamSource(videoRef, active ? src : null);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -103,10 +66,9 @@ export function ReelVideo({
   return (
     <video
       ref={videoRef}
-      src={stream ? undefined : src}
-      poster={poster ?? undefined}
+      src={src}
       aria-label={title}
-      loop={!stream}
+      loop
       playsInline
       preload={active ? "auto" : "metadata"}
       onLoadedMetadata={(event) => setWide(event.currentTarget.videoWidth > event.currentTarget.videoHeight)}
@@ -115,8 +77,8 @@ export function ReelVideo({
   );
 }
 
-/** A still for grids: the Mux thumbnail when there is one, otherwise the upload's first frame. */
-export function VideoThumb({ src, poster, title, className = "" }: { src: string | null; poster?: string | null; title: string; className?: string }) {
+/** A still for grids, taken from the first frame of the upload. */
+export function VideoThumb({ src, title, className = "" }: { src: string | null; title: string; className?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -124,8 +86,7 @@ export function VideoThumb({ src, poster, title, className = "" }: { src: string
     return () => video?.pause();
   }, []);
 
-  if (poster) return <img src={poster} alt={title} loading="lazy" className={`bg-black object-cover ${className}`} />;
-  if (!src || isStream(src)) return <div className={`bg-foreground/10 ${className}`} aria-hidden />;
+  if (!src) return <div className={`bg-foreground/10 ${className}`} aria-hidden />;
   return (
     <video
       ref={videoRef}

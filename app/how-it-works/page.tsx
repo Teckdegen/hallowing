@@ -13,7 +13,7 @@ const night = [
     hour: "Dusk",
     phase: 0.15,
     title: "Post your best prank",
-    body: "Upload a short vertical video, give it a caption and a few tags, and choose who can comment. Your channel keeps every video you post this season.",
+    body: "Upload a haunt, up to 1:30, give it a caption and a few tags, and choose who can comment. Your channel keeps every haunt you post this season.",
     detail: "Harmless pranks travel furthest. The reveal is the moment people replay.",
   },
   {

@@ -4,8 +4,8 @@ import { HauntSky } from "@/components/haunt";
 import { PostedView } from "@/components/posted-view";
 
 export const metadata: Metadata = {
-  title: "Video posted",
-  description: "Your Hallowing video was posted.",
+  title: "Haunt posted",
+  description: "Your haunt was posted.",
   robots: { index: false },
 };
 

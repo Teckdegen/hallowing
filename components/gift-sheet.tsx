@@ -12,6 +12,14 @@ import { buildGiftCalls, fetchTokenBalance, fetchVaultState, formatTokenAmount, 
 
 type Sent = { gift: Gift; quantity: number };
 
+/** Asks the server to cover network fees when the wallet is nearly empty. A failure here never blocks the gift. */
+async function ensureGas(token: string | null) {
+  if (!token) return;
+  try {
+    await fetch("/api/gas", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+  } catch {}
+}
+
 export function GiftSheet({
   creatorName,
   creatorHandle,
@@ -23,7 +31,7 @@ export function GiftSheet({
   videoKey?: string;
   onClose: () => void;
 }) {
-  const { user, login } = useAuth();
+  const { user, login, getToken } = useAuth();
   const { sendTransaction } = useSendTransaction();
   const titleId = useId();
   const [selected, setSelected] = useState<Gift>(gifts[0]);
@@ -116,8 +124,9 @@ export function GiftSheet({
     if (!user.evmWallet || !creatorWallet || blocked) return;
     setPending(true);
     setNotice(null);
-    setBusy("Approving");
+    setBusy("Preparing");
     try {
+      await ensureGas(await getToken());
       const calls = await buildGiftCalls(user.evmWallet, creatorWallet, selected.id, quantity, cost, videoKey);
       for (let index = 0; index < calls.length; index += 1) {
         setBusy(calls.length > 1 && index === 0 ? "Approving" : "Sending");
@@ -126,8 +135,9 @@ export function GiftSheet({
       }
       setBalance((value) => (value === null ? value : value - cost));
       setSent({ gift: selected, quantity });
-    } catch {
-      setNotice("Could not send that gift.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      setNotice(/insufficient funds|gas/i.test(message) ? "Your wallet needs a little ETH for network fees. Try again in a minute." : "Could not send that gift.");
     } finally {
       setPending(false);
     }
