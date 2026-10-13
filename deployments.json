@@ -1,0 +1,20 @@
+{
+  "testnet": {
+    "chainId": 46630,
+    "vault": "0x69c61C4F664839c09bE145eF325c74821601154c",
+    "vaultFromBlock": 134455915,
+    "operator": "0x47Dbff003DE02E1a862eea7F271fd4474B9ED8F2",
+    "hallowToken": "0x4234f93Ca9EB1Bc74Ad0789bD15464C887407Ca5",
+    "endsAt": 1793124006,
+    "periodId": 1
+  },
+  "mainnet": {
+    "chainId": 4663,
+    "vault": null,
+    "vaultFromBlock": null,
+    "operator": null,
+    "hallowToken": null,
+    "endsAt": null,
+    "periodId": null
+  }
+}

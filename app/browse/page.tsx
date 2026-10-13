@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BrowseView } from "@/components/browse-view";
+import { BrowseSkeleton } from "@/components/skeletons";
 
 export const metadata: Metadata = {
   title: "Browse",
+  description: "Search Hallowing videos, creators, and hashtags.",
 };
 
 export default function BrowsePage() {
   return (
-    <Suspense fallback={<p className="px-6 py-8 text-sm text-muted">Loading.</p>}>
+    <Suspense fallback={<BrowseSkeleton />}>
       <BrowseView />
     </Suspense>
   );

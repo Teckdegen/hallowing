@@ -1,3 +1,5 @@
+import { HomeSkeleton } from "@/components/skeletons";
+
 export default function Loading() {
-  return <p className="px-6 py-8 text-sm text-muted">Loading.</p>;
+  return <HomeSkeleton />;
 }

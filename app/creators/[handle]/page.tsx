@@ -1,26 +1,23 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ProfileView } from "@/components/profile-view";
-import { creators, getCreator } from "@/lib/data";
+import { ChannelView } from "@/components/channel-view";
+import { ProfileSkeleton } from "@/components/skeletons";
 
 type Props = {
   params: Promise<{ handle: string }>;
 };
 
-export function generateStaticParams() {
-  return creators.map((creator) => ({ handle: creator.handle }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
-  const creator = getCreator(handle);
-  return { title: creator ? `@${creator.name}` : "Creator" };
+  return {
+    title: `@${handle}`,
+    description: `Watch @${handle} on Hallowing and send gifts to climb the leaderboard.`,
+  };
 }
 
 export default function CreatorPage({ params }: Props) {
   return (
-    <Suspense fallback={<p className="px-6 py-8 text-sm text-muted">Loading.</p>}>
+    <Suspense fallback={<ProfileSkeleton />}>
       <CreatorScreen params={params} />
     </Suspense>
   );
@@ -28,7 +25,5 @@ export default function CreatorPage({ params }: Props) {
 
 async function CreatorScreen({ params }: Props) {
   const { handle } = await params;
-  const creator = getCreator(handle);
-  if (!creator) notFound();
-  return <ProfileView creator={creator} />;
+  return <ChannelView handle={handle} />;
 }

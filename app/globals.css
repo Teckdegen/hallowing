@@ -8,6 +8,17 @@
   --muted: #9a9a9a;
   --faint: #6f6f6f;
   --accent: #e8783a;
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  --background: #f7f5f2;
+  --foreground: #1a1816;
+  --card: #ffffff;
+  --line: #e4dfd8;
+  --muted: #6f675f;
+  --faint: #9a9188;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -20,10 +31,6 @@
   --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-html {
-  color-scheme: dark;
 }
 
 body {
@@ -74,4 +81,277 @@ input:focus-visible {
 
 .chat-scroll {
   scrollbar-color: #2a2a2a transparent;
+}
+
+html[data-theme="light"] .chat-scroll {
+  scrollbar-color: #d9d3cb transparent;
+}
+
+.reel-scroll {
+  scrollbar-width: none;
+}
+
+@media (max-height: 740px) {
+  [data-reel-rail] {
+    gap: 0.5rem;
+  }
+}
+
+.reel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes comment-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.comment-sheet {
+  animation: comment-sheet-up 220ms ease-out;
+}
+
+.ghost-wander {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 35;
+  width: 3.75rem;
+  pointer-events: none;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.ghost-wander[data-ready] {
+  opacity: 1;
+}
+
+.ghost-wander-face {
+  display: block;
+  transition:
+    transform 700ms cubic-bezier(0.45, 0, 0.2, 1),
+    opacity 1400ms ease,
+    filter 1400ms ease;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+
+.ghost-wander[data-facing="right"] .ghost-wander-face {
+  transform: scaleX(-1);
+}
+
+.ghost-wander[data-haunting] .ghost-wander-face {
+  opacity: 0.42;
+  mix-blend-mode: screen;
+  filter: blur(0.6px) drop-shadow(0 0 18px rgba(232, 120, 58, 0.45));
+}
+
+@media (min-width: 640px) {
+  .ghost-wander {
+    width: 4.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ghost-wander {
+    display: none;
+  }
+}
+
+.skeleton {
+  --skeleton-base: color-mix(in srgb, var(--foreground) 7%, transparent);
+  --skeleton-shine: color-mix(in srgb, #d9dde4 22%, transparent);
+  background: linear-gradient(100deg, var(--skeleton-base) 30%, var(--skeleton-shine) 50%, var(--skeleton-base) 70%) var(--skeleton-base);
+  background-size: 250% 100%;
+  background-attachment: fixed;
+  animation: skeleton-shine 1.6s ease-in-out infinite;
+}
+
+html[data-theme="light"] .skeleton {
+  --skeleton-base: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --skeleton-shine: rgba(255, 255, 255, 0.85);
+}
+
+@keyframes skeleton-shine {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -125% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .comment-sheet {
+    animation: none;
+  }
+}
+
+.reel-video {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  --controls: none;
+  --media-object-fit: cover;
+  --media-object-position: center;
+}
+
+.watch-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.watch-video {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  --media-accent-color: #e8783a;
+}
+
+.haunt-sky {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.haunt-sky::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto;
+  z-index: -1;
+  height: 32rem;
+  background:
+    radial-gradient(18rem 14rem at 82% 18%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(26rem 12rem at 10% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.haunt-moon {
+  position: absolute;
+  top: 1.75rem;
+  right: 8%;
+  z-index: -1;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 36% 34%, #fff1dc, #f2b980 55%, #d9733a 100%);
+  box-shadow: 0 0 60px 12px color-mix(in srgb, var(--accent) 35%, transparent);
+  opacity: 0.85;
+  animation: moon-breathe 7s ease-in-out infinite;
+}
+
+.haunt-fog {
+  position: absolute;
+  inset: auto -30% 0;
+  z-index: -1;
+  height: 9rem;
+  background:
+    radial-gradient(40% 60% at 25% 70%, color-mix(in srgb, var(--foreground) 7%, transparent), transparent 70%),
+    radial-gradient(35% 55% at 70% 60%, color-mix(in srgb, var(--foreground) 6%, transparent), transparent 70%);
+  filter: blur(8px);
+  animation: fog-drift 18s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.haunt-bat {
+  position: absolute;
+  z-index: -1;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+  animation: bat-glide 9s ease-in-out infinite;
+}
+
+.haunt-bat svg {
+  animation: bat-flap 0.32s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+.ghost-idle {
+  animation: ghost-idle 3.2s ease-in-out infinite;
+}
+
+@keyframes ghost-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+
+.candle-flicker {
+  animation: candle-flicker 2.4s ease-in-out infinite;
+}
+
+@keyframes moon-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+}
+
+@keyframes fog-drift {
+  from {
+    transform: translateX(-6%);
+  }
+  to {
+    transform: translateX(6%);
+  }
+}
+
+@keyframes bat-glide {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-18px, 8px);
+  }
+}
+
+@keyframes bat-flap {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.45);
+  }
+}
+
+@keyframes candle-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.75;
+    transform: scale(0.94, 1.04);
+  }
+  60% {
+    opacity: 0.92;
+    transform: scale(1.03, 0.97);
+  }
 }

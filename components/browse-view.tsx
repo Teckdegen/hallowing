@@ -2,101 +2,115 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { StreamCard } from "@/components/stream-card";
-import { creators, getCreator, liveFor, streams } from "@/lib/data";
-import { formatFollowers, formatNumber } from "@/lib/format";
+import { useEffect, useState } from "react";
+import { Avatar } from "@/components/avatar";
+import { BrowseSkeleton } from "@/components/skeletons";
+import { VideoTile } from "@/components/video-tile";
+import { fetchCreators, searchVideos, type CreatorSummary, type Video } from "@/lib/videos";
+
+type Results = { query: string; videos: Video[]; creators: CreatorSummary[] };
 
 export function BrowseView() {
   const params = useSearchParams();
   const query = (params.get("q") ?? "").trim();
-  const needle = query.toLowerCase();
+  const [results, setResults] = useState<Results | null>(null);
+  const [picked, setPicked] = useState<{ query: string; tag: string | null }>({ query: "", tag: null });
+  const tag = picked.query === query ? picked.tag : null;
+  const setTag = (next: string | null) => setPicked({ query, tag: next });
 
-  const filtered = streams.filter((stream) => {
-    if (!needle) return true;
-    const creator = getCreator(stream.handle);
-    const haystack = [stream.title, stream.category, stream.handle, creator?.name ?? "", ...stream.tags]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(needle);
-  });
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([searchVideos(query), fetchCreators(query)]).then(([videos, creators]) => {
+      if (!cancelled) setResults({ query, videos, creators });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
 
-  const filteredCreators = creators.filter((creator) => {
-    if (!needle) return true;
-    return `${creator.name} ${creator.tagline} ${creator.handle}`.toLowerCase().includes(needle);
-  });
+  if (!results || results.query !== query) return <BrowseSkeleton />;
 
-  const narrowed = Boolean(query);
+  const tagCounts = new Map<string, number>();
+  for (const video of results.videos) for (const item of video.hashtags) tagCounts.set(item, (tagCounts.get(item) ?? 0) + 1);
+  const tabs = Array.from(tagCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([item]) => item);
+  const videos = tag ? results.videos.filter((video) => video.hashtags.includes(tag)) : results.videos;
+  const people = results.creators;
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-6 lg:px-6">
-      {query ? (
-        <p className="mb-6 text-sm text-muted">
-          Results for <span className="text-foreground">“{query}”</span>
-        </p>
+    <main className="mx-auto w-full max-w-[1400px] px-4 py-6 lg:px-6">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {query ? (
+          <>
+            Results for <span className="text-accent">{query}</span>
+          </>
+        ) : (
+          "Explore"
+        )}
+      </h1>
+
+      {tabs.length > 0 ? (
+        <div className="reel-scroll -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:px-0" role="tablist" aria-label="Hashtags">
+          <Pill active={tag === null} onClick={() => setTag(null)}>
+            All
+          </Pill>
+          {tabs.map((item) => (
+            <Pill key={item} active={tag === item} onClick={() => setTag(item)}>
+              #{item}
+            </Pill>
+          ))}
+        </div>
       ) : null}
 
-      {narrowed ? (
-        <section>
-          <h2 className="text-[11px] font-semibold tracking-[0.18em] text-muted">MATCHES</h2>
-          {filtered.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">
-              Nothing matches.{" "}
-              <Link href="/browse" className="text-accent">
-                Clear
-              </Link>
-            </p>
-          ) : (
-            <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4">
-              {filtered.map((stream) => (
-                <StreamCard key={stream.slug} stream={stream} />
-              ))}
-            </div>
-          )}
+      {people.length > 0 ? (
+        <section id="creators" className="mt-8 scroll-mt-20" aria-labelledby="creators-title">
+          <h2 id="creators-title" className="text-base font-semibold">
+            Creators
+          </h2>
+          <ul className="reel-scroll -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0">
+            {people.map((creator) => (
+              <li key={creator.username} className="shrink-0">
+                <Link
+                  href={`/creators/${creator.username}`}
+                  className="flex w-36 flex-col items-center rounded-2xl border border-line bg-card px-3 pt-5 pb-4 text-center transition-colors hover:border-foreground/20 sm:w-40"
+                >
+                  <Avatar src={creator.avatar} seed={creator.username} className="size-16" />
+                  <span className="mt-3 w-full truncate text-sm font-semibold">{creator.name}</span>
+                  <span className="w-full truncate text-xs text-muted">@{creator.username}</span>
+                  <span className="mt-2 text-xs text-muted tabular-nums">
+                    <span className="font-semibold text-foreground">{creator.videos}</span> {creator.videos === 1 ? "video" : "videos"}
+                  </span>
+                  <span className="mt-3 inline-flex h-8 w-full items-center justify-center rounded-full bg-accent text-xs font-semibold text-[#1a0c08]">
+                    View
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
-      ) : (
-        <>
-          <Trending />
-          <section className="mt-10">
-            <h2 className="text-[11px] font-semibold tracking-[0.18em] text-muted">LIVE NOW</h2>
-            <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2 xl:grid-cols-4">
-              {liveRest().map((stream) => (
-                <StreamCard key={stream.slug} stream={stream} />
-              ))}
-            </div>
-          </section>
-        </>
-      )}
+      ) : null}
 
-      <section id="creators" className="mt-12 border-t border-line pt-8">
-        <h2 className="text-[11px] font-semibold tracking-[0.18em] text-muted">CREATORS</h2>
-        {filteredCreators.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">No creators match that.</p>
+      <section className="mt-8" aria-labelledby="videos-title">
+        <h2 id="videos-title" className="text-base font-semibold">
+          Videos
+        </h2>
+        {videos.length === 0 ? (
+          <div className="mt-3 flex flex-col items-center rounded-2xl border border-line bg-card px-6 py-14 text-center">
+            <img src="/ghost.png" alt="" width={256} height={256} className="ghost-idle h-auto w-14" />
+            <p className="mt-4 font-semibold">{query ? "No videos match that search" : "No videos yet"}</p>
+            <Link href={query ? "/browse" : "/create"} className="mt-3 text-sm text-accent">
+              {query ? "Show everything" : "Upload the first one"}
+            </Link>
+          </div>
         ) : (
-          <ul className="mt-4 divide-y divide-line border-y border-line">
-            {filteredCreators.map((creator) => {
-              const live = liveFor(creator.handle);
-              return (
-                <li key={creator.handle} className="flex items-center gap-4 py-3">
-                  <Link href={`/creators/${creator.handle}`} className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">@{creator.name}</span>
-                    <span className="block truncate text-xs text-muted">{creator.tagline}</span>
-                  </Link>
-                  <span className="hidden text-xs text-faint sm:inline tabular-nums">
-                    {formatFollowers(creator.followers)} followers
-                  </span>
-                  {live ? (
-                    <Link href={`/watch/${live.slug}`} className="text-[11px] font-semibold tracking-[0.12em] text-accent">
-                      LIVE
-                    </Link>
-                  ) : (
-                    <span className="text-[11px] text-faint">OFFLINE</span>
-                  )}
-                  <span className="w-20 text-right text-xs text-muted tabular-nums">
-                    {formatNumber(creator.support)}
-                  </span>
-                </li>
-              );
-            })}
+          <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {videos.map((video) => (
+              <li key={video.id}>
+                <VideoTile video={video} />
+              </li>
+            ))}
           </ul>
         )}
       </section>
@@ -104,24 +118,18 @@ export function BrowseView() {
   );
 }
 
-function byViewers() {
-  return streams.filter((stream) => stream.live).sort((a, b) => b.viewers - a.viewers);
-}
-
-function liveRest() {
-  return byViewers().slice(3);
-}
-
-function Trending() {
-  const top = byViewers().slice(0, 3);
+function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
-      <h2 className="text-[11px] font-semibold tracking-[0.18em] text-muted">TRENDING RIGHT NOW</h2>
-      <div className="mt-4 grid grid-cols-1 gap-x-4 gap-y-7 md:grid-cols-3">
-        {top.map((stream) => (
-          <StreamCard key={stream.slug} stream={stream} />
-        ))}
-      </div>
-    </section>
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`h-8 shrink-0 rounded-lg px-3 text-sm font-medium whitespace-nowrap transition-colors ${
+        active ? "bg-foreground text-background" : "bg-foreground/[0.06] text-foreground/80 hover:bg-foreground/10"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
