@@ -69,11 +69,8 @@ function ShellMain({ children }: { children: React.ReactNode }) {
 function MobileNav() {
   const pathname = usePathname();
   return (
-    <nav
-      aria-label="Mobile"
-      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom))] lg:hidden"
-    >
-      <div className="mx-auto flex max-w-md items-end justify-between rounded-full border border-white/15 bg-black/80 px-1.5 pt-1 pb-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+    <nav aria-label="Mobile" className="fixed inset-x-0 bottom-0 z-40 bg-black pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <div className="grid h-14 grid-cols-5 items-center">
         {nav.map((item) => {
           const active = navActive(item, pathname);
           if (item.icon === "plus") {
@@ -83,9 +80,9 @@ function MobileNav() {
                 href={item.href}
                 aria-label={item.label}
                 aria-current={active ? "page" : undefined}
-                className={`relative -top-3 grid size-12 shrink-0 place-items-center rounded-2xl bg-accent text-[#1a0c08] shadow-lg ${active ? "ring-2 ring-white" : ""}`}
+                className="grid h-full place-items-center"
               >
-                <NavIcon name="plus" />
+                <CreateButton />
               </Link>
             );
           }
@@ -96,15 +93,29 @@ function MobileNav() {
               href={item.href}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-1 text-[10px] leading-none font-medium ${active ? "text-white" : "text-white/55"}`}
+              className={`flex h-full flex-col items-center justify-center gap-1 text-[11px] leading-none font-medium whitespace-nowrap ${active ? "text-white" : "text-white/70"}`}
             >
-              <NavIcon name={item.icon} />
-              <span className="max-w-full truncate">{label}</span>
+              <NavIcon name={item.icon} size={22} />
+              <span>{label}</span>
             </Link>
           );
         })}
       </div>
     </nav>
+  );
+}
+
+function CreateButton() {
+  return (
+    <span className="relative block h-7 w-11">
+      <span className="absolute top-0 left-0 h-7 w-9 rounded-lg bg-[#25F4EE]" />
+      <span className="absolute top-0 right-0 h-7 w-9 rounded-lg bg-[#FE2C55]" />
+      <span className="absolute top-0 left-1/2 grid h-7 w-9 -translate-x-1/2 place-items-center rounded-lg bg-white">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+          <path d="M9 4v10M4 9h10" stroke="#161616" strokeWidth="1.75" strokeLinecap="round" />
+        </svg>
+      </span>
+    </span>
   );
 }
 
@@ -142,7 +153,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const closeMenu = useCallback(() => undefined, []);
 
   return (
-    <div className="flex min-h-dvh flex-col [--mobile-nav:calc(4.5rem+env(safe-area-inset-bottom))] lg:[--mobile-nav:0px]">
+    <div className="flex min-h-dvh flex-col [--mobile-nav:calc(3.5rem+env(safe-area-inset-bottom))] lg:[--mobile-nav:0px]">
       <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b border-line bg-background px-2 sm:gap-3 sm:px-3">
         {searchOpen ? (
           <div className="absolute inset-0 z-10 flex items-center gap-1 bg-background px-2 sm:hidden">
@@ -433,8 +444,8 @@ function SearchIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-function NavIcon({ name }: { name: "home" | "heart" | "cup" | "plus" | "info" }) {
-  const common = { width: 18, height: 18, viewBox: "0 0 16 16", "aria-hidden": true as const, className: "shrink-0" };
+function NavIcon({ name, size = 18 }: { name: "home" | "heart" | "cup" | "plus" | "info"; size?: number }) {
+  const common = { width: size, height: size, viewBox: "0 0 16 16", "aria-hidden": true as const, className: "shrink-0" };
   if (name === "home") {
     return (
       <svg {...common}>
