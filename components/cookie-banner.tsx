@@ -20,7 +20,7 @@ export function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-3xl flex-col gap-3 rounded-3xl border border-line bg-card p-4 shadow-2xl sm:flex-row sm:items-center sm:px-5">
+    <div className="fixed inset-x-3 bottom-[calc(var(--mobile-nav)+0.75rem)] z-50 mx-auto flex max-w-3xl flex-col gap-3 rounded-3xl border border-line bg-card p-4 shadow-2xl sm:flex-row sm:items-center sm:px-5 lg:bottom-[max(0.75rem,env(safe-area-inset-bottom))]">
       <p className="min-w-0 flex-1 text-sm text-muted">
         Hallowing stores your theme and this choice on this device. Sign-in and uploads also use Privy and Supabase. Read the{" "}
         <Link href="/privacy" className="text-foreground underline">

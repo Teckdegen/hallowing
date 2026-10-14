@@ -4,16 +4,45 @@ import { giftImage, gifts, shortTokens } from "@/lib/gifts";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: "How a Hallowing season works: post a haunt, get gifted, and split the pot at midnight.",
+  description: "How a Hallowing season works, from posting a haunt to the top 10 splitting the pot.",
 };
 
 const contents = [
-  { href: "#post", label: "Post a haunt" },
-  { href: "#feed", label: "The feed" },
-  { href: "#gifts", label: "Gifts" },
-  { href: "#split", label: "The split" },
-  { href: "#rules", label: "House rules" },
-  { href: "#after", label: "After midnight" },
+  {
+    href: "#haunt",
+    title: "A haunt",
+    detail: "A short clip, 1:30 or under, posted to your channel.",
+  },
+  {
+    href: "#post",
+    title: "Posting one",
+    detail: "Upload the file, name it, and choose who can watch.",
+  },
+  {
+    href: "#feed",
+    title: "The feed",
+    detail: "Home plays haunts one at a time. A view is counted once per person.",
+  },
+  {
+    href: "#gifts",
+    title: "Gifts",
+    detail: "Fans send HALLOW. That gift value is your score for the season.",
+  },
+  {
+    href: "#board",
+    title: "The board",
+    detail: "The 100 most gifted creators, with a countdown to the close.",
+  },
+  {
+    href: "#rules",
+    title: "House rules",
+    detail: "The scare ends with everyone laughing, including the person who got pranked.",
+  },
+  {
+    href: "#split",
+    title: "The top 10 split",
+    detail: "When the season ends, the ten winners share 80% of the pot.",
+  },
 ] as const;
 
 export default function HowItWorksPage() {
@@ -21,48 +50,71 @@ export default function HowItWorksPage() {
     <main className="mx-auto w-full max-w-2xl px-5 pt-10 pb-24 sm:px-6 sm:pt-14">
       <p className="text-sm text-muted">How it works</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">A season on Hallowing</h1>
-      <p className="mt-4 text-base leading-7 text-foreground/80">
-        You post a short haunt, people watch it, and the ones they love get gifts in HALLOW. When the season clock hits zero, the top 10 split most of the pot. Your channel stays up after that.
-      </p>
+      <div className="mt-5 space-y-4 text-base leading-7 text-foreground/80">
+        <p>
+          A season is one run of the clock. You post short haunts. People watch them, follow you, and send gifts paid in HALLOW on Robinhood Chain. The HALLOW they send is your score. The leaderboard ranks creators by that score and shows the time left.
+        </p>
+        <p>
+          When that clock hits zero, gifting for the season stops. The ten creators with the highest scores are the winners. They split 80% of the HALLOW sitting in the vault. The walkthrough below is the whole path, from the first upload to that payout.
+        </p>
+      </div>
 
-      <nav aria-label="On this page" className="mt-8 border-y border-line py-4">
-        <p className="text-xs font-semibold tracking-wide text-muted uppercase">On this page</p>
-        <ol className="mt-2 space-y-1 text-sm">
-          {contents.map((item) => (
+      <nav aria-label="Table of contents" className="mt-10">
+        <h2 className="text-xs font-semibold tracking-wide text-muted uppercase">Contents</h2>
+        <ol className="mt-3 divide-y divide-line border-y border-line">
+          {contents.map((item, index) => (
             <li key={item.href}>
-              <a href={item.href} className="text-foreground/80 hover:text-accent">
-                {item.label}
+              <a href={item.href} className="flex gap-4 py-3 hover:text-accent">
+                <span className="w-6 shrink-0 pt-0.5 text-sm tabular-nums text-muted">{String(index + 1).padStart(2, "0")}</span>
+                <span>
+                  <span className="block text-sm font-medium">{item.title}</span>
+                  <span className="mt-0.5 block text-sm leading-6 text-muted">{item.detail}</span>
+                </span>
               </a>
             </li>
           ))}
         </ol>
       </nav>
 
+      <section id="haunt" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">A haunt</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          A haunt is the video you post. It has to be 1:30 or shorter, and 30 MB or smaller. The title is what people read in the feed. The filename stays on your computer. A caption can say what happened, and tags help people search for it later.
+        </p>
+      </section>
+
       <section id="post" className="mt-12 scroll-mt-20">
-        <h2 className="text-xl font-semibold tracking-tight">Post a haunt</h2>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          A haunt is a clip of 1:30 or shorter. Open Upload a haunt, drop the file in, and give it a title, a caption, and a few tags. Then choose who can comment and who can watch. It lands on your channel and, if you set it to public, in the feed.
-        </p>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Harmless pranks travel furthest. The reveal is the part people replay. If a scare is staged, say so in the caption. Tag the people who helped. A good crew gets gifted together.
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight">Posting one</h2>
+        <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
+          <p>
+            Open Upload a haunt and drop the file in. The page checks the length before it takes the file. Then you add the title, the caption, and the tags, choose who can comment, and choose who can watch. Public haunts go on your channel and into the feed. Unlisted and private ones stay off the feed.
+          </p>
+          <p>
+            Harmless pranks travel furthest. The reveal is the part people replay. If a scare is staged, say so in the caption, and tag the people who helped. A crew that shows up in the caption is easier to gift.
+          </p>
+        </div>
       </section>
 
       <section id="feed" className="mt-12 scroll-mt-20">
         <h2 className="text-xl font-semibold tracking-tight">The feed</h2>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Home is a reel. The haunt in front of you plays with sound. Tap the middle to pause it, and swipe for the next scare. Likes, comments, and shares sit beside it. A view counts once for each person: after the clip has been on screen for a couple of seconds in the feed, or as soon as they open the watch page.
-        </p>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Follows and comments are how a crowd finds you. That crowd is who sends gifts. Your follower count sits on your channel, under your name.
-        </p>
+        <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
+          <p>
+            Home is one haunt at a time, full screen, with sound. Tap the middle to pause. Swipe up for the next one. The creator, the title, the tags, and the view count sit along the bottom. Likes, comments, gifts, and share sit on the right.
+          </p>
+          <p>
+            A view counts once for each person. In the feed that happens after the haunt has been on screen for a couple of seconds. Opening the watch page counts immediately. Follows live on your channel, under your name, and comments use the photo that is on your profile now.
+          </p>
+        </div>
       </section>
 
       <section id="gifts" className="mt-12 scroll-mt-20">
         <h2 className="text-xl font-semibold tracking-tight">Gifts</h2>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Anyone holding HALLOW taps Gift beside a haunt, picks one of the ten gifts below, sets how many, and sends. The HALLOW value lands on that creator and moves them up the board. After sending, they can share it to X, Threads, Instagram, and the rest. We tag the creator on that platform.
-        </p>
+        <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
+          <p>
+            Gift is the button beside a haunt. A fan picks one of the ten gifts, chooses how many (up to 99), and sends HALLOW from their wallet. The price below is for one gift. Two Pumpkin Puffs cost twice that. The total is added to your season score and you move up the board.
+          </p>
+          <p>After a gift lands, the sender can share it to X, Threads, Instagram, and the other apps. That share tags you on the platform they pick.</p>
+        </div>
         <ul className="mt-5 space-y-3">
           {gifts.map((gift) => (
             <li key={gift.id} className="flex items-center gap-3 text-base leading-7">
@@ -76,31 +128,42 @@ export default function HowItWorksPage() {
         </ul>
       </section>
 
-      <section id="split" className="mt-12 scroll-mt-20">
-        <h2 className="text-xl font-semibold tracking-tight">The split</h2>
+      <section id="board" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">The board</h2>
         <p className="mt-3 text-base leading-7 text-foreground/80">
-          Each season has its own clock. The countdown on the leaderboard is the moment gifting closes. When it hits zero, the board freezes. The top 10 share 80% of the pot, each sized by the gifts they pulled in. The other 20% stays in the vault.
-        </p>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Add up the gift value held by the top 10. Your slice of the 80% matches your slice of that total. If the pot were 10 million HALLOW and you held a quarter of the gifts among the top 10, your share would be 2 million. Anyone can ring the midnight bell with Split top 10 on the leaderboard once the season closes.
-        </p>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Everyone can see the board. It lists the 100 most gifted creators, ten per page, with a payout line under tenth place. Filter by a gift to see who receives the most of that one.
+          The leaderboard lists the 100 most gifted creators, ten to a page. The pot at the top is the HALLOW already in the vault. The countdown next to it is the close of the season. You can filter the list by a single gift to see who receives the most of that one. The payout itself is settled at the end, in the last section.
         </p>
       </section>
 
       <section id="rules" className="mt-12 scroll-mt-20">
         <h2 className="text-xl font-semibold tracking-tight">House rules</h2>
         <p className="mt-3 text-base leading-7 text-foreground/80">
-          Keep it kind. Everyone laughs at the end, including the person who got pranked. Real reactions are the point, and staged is fine when the caption says so. No danger, no damage, no one hurt. Spooky beats risky every time.
+          Keep it kind. Everyone laughs at the end, including the person who got pranked. Real reactions are the point, and a staged scare is welcome when the caption says so. No danger, no damage, no one hurt. A spooky room beats a risky one.
         </p>
       </section>
 
-      <section id="after" className="mt-12 scroll-mt-20">
-        <h2 className="text-xl font-semibold tracking-tight">After midnight</h2>
-        <p className="mt-3 text-base leading-7 text-foreground/80">
-          Your haunts, followers, and comments stay on your channel, ready for the next season. Rank comes from the HALLOW value of the gifts you receive, so post often, reply to comments, and share your haunts so fans find the Gift button.
-        </p>
+      <section id="split" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">The top 10 split</h2>
+        <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
+          <p>
+            This is the end of a season. The countdown on the leaderboard reaches zero, the board freezes, and new gifts stop counting toward this pot. The winners are the ten creators with the most HALLOW gifted to them. Rank is that gift total.
+          </p>
+          <p>
+            The pot is the HALLOW balance in the vault, which is every gift sent that season. The winners share 80% of that balance. The other 20% stays in the vault, along with any rounding dust.
+          </p>
+          <p>
+            Each winner is paid in proportion to the gifts they received, measured against the other nine. Add up the gift totals of the top 10. Your fraction of that sum is your fraction of the 80%.
+          </p>
+          <p>
+            Take a pot of 10,000,000 HALLOW. The prize is 8,000,000. If the top 10 together were gifted 4,000,000, and you were gifted 1,000,000 of that, you hold a quarter of the winners&apos; gifts. A quarter of 8,000,000 is 2,000,000 HALLOW, paid to you.
+          </p>
+          <p>
+            Places 11 through 100 stay on the board so people can see the season, and their channels stay up. The prize is paid to the ten winners. After the clock has hit zero, the leaderboard shows Split top 10. Any signed-in person can press it. It sends the prize out once, and then the button is gone.
+          </p>
+          <p>
+            Your haunts, follows, and comments remain on your channel for the next season. A new clock starts its own pot. Post often, reply to comments, and share the haunt so people can find Gift.
+          </p>
+        </div>
         <p className="mt-6 text-base leading-7">
           <Link href="/create" className="font-medium text-accent hover:underline">
             Upload a haunt

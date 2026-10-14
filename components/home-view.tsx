@@ -29,7 +29,7 @@ export function HomeView() {
   if (!active) return <EmptyFeed />;
 
   return (
-    <div className="relative h-[calc(100dvh-3.5rem)] min-h-0 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="relative h-[calc(100dvh-3.5rem-var(--mobile-nav))] min-h-0 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]">
       <ReelFeed videos={videos} onActive={(video) => setActive((current) => (current?.id === video.id ? current : video))} />
       <aside className="hidden min-h-0 flex-col border-l border-line xl:flex">
         <h2 className="shrink-0 px-4 pt-4 pb-2 text-sm font-semibold">Comments</h2>
@@ -41,7 +41,7 @@ export function HomeView() {
 
 function EmptyFeed() {
   return (
-    <main className="grid h-[calc(100dvh-3.5rem)] place-items-center px-6 text-center">
+    <main className="grid h-[calc(100dvh-3.5rem-var(--mobile-nav))] place-items-center px-6 text-center">
       <div className="max-w-sm">
         <img src="/ghost.png" alt="" width={96} height={96} className="mx-auto size-24 object-contain" />
         <h1 className="mt-4 text-xl font-semibold">The feed is waiting for its first scare</h1>

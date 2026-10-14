@@ -46,7 +46,7 @@ function TileSkeleton({ wide = false, creator = true }: { wide?: boolean; creato
 
 export function HomeSkeleton() {
   return (
-    <div className="h-[calc(100dvh-3.5rem)] min-h-0 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]" aria-busy="true" aria-label="Loading videos">
+    <div className="h-[calc(100dvh-3.5rem-var(--mobile-nav))] min-h-0 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]" aria-busy="true" aria-label="Loading videos">
       <div className="relative h-full overflow-hidden bg-black">
         <div className="skeleton absolute inset-0 rounded-none opacity-60" />
         <div className="absolute top-1/2 right-[max(0.75rem,env(safe-area-inset-right))] flex -translate-y-1/2 flex-col items-center gap-4 sm:right-5">

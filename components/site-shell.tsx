@@ -44,12 +44,75 @@ function CurrentNav({ onNavigate }: { onNavigate: () => void }) {
   return <NavLinks pathname={usePathname()} onNavigate={onNavigate} />;
 }
 
+function navActive(item: (typeof nav)[number], pathname: string | null) {
+  if (item.href === "/") return pathname === "/";
+  if (item.label === "Following") return pathname === "/browse";
+  return pathname === item.href;
+}
+
+function ShellMain({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const reel = pathname === "/";
+  return (
+    <div className={`min-w-0 flex-1 ${reel ? "" : "max-lg:pb-[var(--mobile-nav)]"}`}>
+      {children}
+      {reel ? null : (
+        <div className="flex gap-4 px-5 py-4 text-xs text-muted lg:hidden">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileNav() {
+  const pathname = usePathname();
+  return (
+    <nav
+      aria-label="Mobile"
+      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom))] lg:hidden"
+    >
+      <div className="mx-auto flex max-w-md items-end justify-between rounded-full border border-white/15 bg-black/80 px-1.5 pt-1 pb-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        {nav.map((item) => {
+          const active = navActive(item, pathname);
+          if (item.icon === "plus") {
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                className={`relative -top-3 grid size-12 shrink-0 place-items-center rounded-2xl bg-accent text-[#1a0c08] shadow-lg ${active ? "ring-2 ring-white" : ""}`}
+              >
+                <NavIcon name="plus" />
+              </Link>
+            );
+          }
+          const label = item.label === "Leaderboard" ? "Board" : item.label === "How it works" ? "Guide" : item.label;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              aria-label={item.label}
+              aria-current={active ? "page" : undefined}
+              className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-full px-1 py-1 text-[10px] leading-none font-medium ${active ? "text-white" : "text-white/55"}`}
+            >
+              <NavIcon name={item.icon} />
+              <span className="max-w-full truncate">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 function NavLinks({ pathname, onNavigate }: { pathname: string | null; onNavigate: () => void }) {
   return (
     <nav className="flex flex-col gap-1 p-2" aria-label="Primary">
       {nav.map((item) => {
-        const active =
-          item.href === "/" ? pathname === "/" : item.label === "Following" ? pathname === "/browse" : pathname === item.href;
+        const active = navActive(item, pathname);
         return (
           <Link
             key={item.label}
@@ -72,33 +135,14 @@ function NavLinks({ pathname, onNavigate }: { pathname: string | null; onNavigat
 export function SiteShell({ children }: { children: React.ReactNode }) {
   const { user, ready, configured, displayName, avatarUrl, login, signOut, needsUsername, saveUsername } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
-  const closeMenu = useCallback(() => setMobileOpen(false), []);
-
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
-  function toggleNav() {
-    if (window.matchMedia("(min-width: 1024px)").matches) {
-      setCollapsed((value) => !value);
-      return;
-    }
-    setMobileOpen((value) => !value);
-  }
-
-  const sidebarVisible = mobileOpen ? "flex" : "hidden";
-  const sidebarDesktop = collapsed ? "lg:hidden" : "lg:flex";
+  const closeMenu = useCallback(() => undefined, []);
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col [--mobile-nav:calc(4.5rem+env(safe-area-inset-bottom))] lg:[--mobile-nav:0px]">
       <header className="sticky top-0 z-40 flex h-14 items-center gap-1 border-b border-line bg-background px-2 sm:gap-3 sm:px-3">
         {searchOpen ? (
           <div className="absolute inset-0 z-10 flex items-center gap-1 bg-background px-2 sm:hidden">
@@ -174,10 +218,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           )}
           <button
             type="button"
-            onClick={toggleNav}
-            aria-expanded={mobileOpen || !collapsed}
+            onClick={() => setCollapsed((value) => !value)}
+            aria-expanded={!collapsed}
             aria-label="Menu"
-            className="grid size-9 shrink-0 place-items-center rounded-full text-foreground hover:bg-foreground/5 sm:size-10"
+            className="hidden size-10 shrink-0 place-items-center rounded-full text-foreground hover:bg-foreground/5 lg:grid"
           >
             <MenuIcon />
           </button>
@@ -187,33 +231,28 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       {setupOpen ? <SetupModal onClose={() => setSetupOpen(false)} /> : null}
 
       <div className="flex min-h-0 flex-1">
-        {mobileOpen ? (
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="fixed inset-0 top-14 z-30 bg-black/70 lg:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-        ) : null}
         <aside
-          className={`${sidebarVisible} ${sidebarDesktop} fixed top-14 right-0 bottom-0 z-30 w-[232px] shrink-0 flex-col border-l border-line bg-background lg:sticky lg:right-auto lg:left-0 lg:border-r lg:border-l-0 lg:bottom-auto lg:h-[calc(100dvh-3.5rem)]`}
+          className={`${collapsed ? "lg:hidden" : "lg:flex"} fixed top-14 right-0 bottom-0 z-30 hidden w-[232px] shrink-0 flex-col border-l border-line bg-background lg:sticky lg:right-auto lg:left-0 lg:border-r lg:border-l-0 lg:bottom-auto lg:h-[calc(100dvh-3.5rem)]`}
         >
           <Suspense fallback={<NavLinks pathname={null} onNavigate={closeMenu} />}>
             <CurrentNav onNavigate={closeMenu} />
           </Suspense>
           <SidebarRecommended onNavigate={closeMenu} />
           <div className="flex shrink-0 gap-4 border-t border-line px-4 py-3 text-xs text-muted">
-            <Link href="/privacy" onClick={() => setMobileOpen(false)} className="hover:text-foreground">
+            <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
-            <Link href="/terms" onClick={() => setMobileOpen(false)} className="hover:text-foreground">
+            <Link href="/terms" className="hover:text-foreground">
               Terms
             </Link>
           </div>
         </aside>
-        <div className="min-w-0 flex-1">{children}</div>
+        <Suspense fallback={<div className="min-w-0 flex-1 max-lg:pb-[var(--mobile-nav)]">{children}</div>}>
+          <ShellMain>{children}</ShellMain>
+        </Suspense>
       </div>
       <Suspense fallback={null}>
+        <MobileNav />
         <PageGhost />
         <PathEffect onChange={closeSearch} />
       </Suspense>
