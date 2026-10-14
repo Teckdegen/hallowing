@@ -47,8 +47,8 @@ function TileSkeleton({ wide = false, creator = true }: { wide?: boolean; creato
 export function HomeSkeleton() {
   return (
     <div className="h-[calc(100dvh-3.5rem-var(--mobile-nav))] min-h-0 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]" aria-busy="true" aria-label="Loading videos">
-      <div className="relative h-full overflow-hidden bg-black">
-        <div className="skeleton absolute inset-0 rounded-none opacity-60" />
+      <div className="relative h-full overflow-hidden bg-background">
+        <div className="skeleton absolute inset-0 rounded-none" />
         <div className="absolute top-1/2 right-[max(0.75rem,env(safe-area-inset-right))] flex -translate-y-1/2 flex-col items-center gap-4 sm:right-5">
           <Bone className="size-12 rounded-full" />
           {Array.from({ length: 4 }, (_, index) => (
@@ -107,8 +107,8 @@ export function WatchSkeleton() {
   return (
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start" aria-busy="true" aria-label="Loading video">
       <div className="min-w-0">
-        <div className="bg-black">
-          <Bone className="aspect-video w-full rounded-none opacity-70" />
+        <div className="bg-background">
+          <Bone className="aspect-video w-full rounded-none" />
         </div>
         <div className="flex flex-col gap-5 px-4 py-5 lg:px-5">
           <div className="flex items-start justify-between gap-4">
@@ -156,7 +156,7 @@ export function ProfileSkeleton() {
     <main className="mx-auto w-full max-w-[1100px] px-4 pt-4 pb-12 lg:px-6" aria-busy="true" aria-label="Loading creator">
       <div className="relative">
         <Bone className="h-32 sm:h-48 md:h-56" />
-        <div className="absolute top-3 right-3 h-9 w-28 rounded-full bg-black/40" />
+        <div className="absolute top-3 right-3 h-9 w-28 rounded-full bg-foreground/15" />
       </div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="relative -mt-14 w-fit rounded-full border-4 border-background bg-background sm:-mt-16">

@@ -162,17 +162,12 @@ html[data-theme="light"] .chat-scroll {
 }
 
 .skeleton {
-  --skeleton-base: color-mix(in srgb, var(--foreground) 7%, transparent);
-  --skeleton-shine: color-mix(in srgb, #d9dde4 22%, transparent);
+  --skeleton-base: color-mix(in srgb, var(--foreground) 8%, var(--background));
+  --skeleton-shine: color-mix(in srgb, var(--foreground) 18%, var(--background));
   background: linear-gradient(100deg, var(--skeleton-base) 30%, var(--skeleton-shine) 50%, var(--skeleton-base) 70%) var(--skeleton-base);
   background-size: 250% 100%;
   background-attachment: fixed;
   animation: skeleton-shine 1.6s ease-in-out infinite;
-}
-
-html[data-theme="light"] .skeleton {
-  --skeleton-base: color-mix(in srgb, var(--foreground) 8%, transparent);
-  --skeleton-shine: rgba(255, 255, 255, 0.85);
 }
 
 @keyframes skeleton-shine {
