@@ -8,6 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { BrandBadge, BrandGlyph, brandName } from "@/components/brand-icons";
 import { GiftSheet } from "@/components/gift-sheet";
 import { VideoThumb } from "@/components/reel-video";
+import { ViewCount } from "@/components/view-count";
 import { ProfileSkeleton } from "@/components/skeletons";
 import {
   channelName,
@@ -21,6 +22,8 @@ import {
   type Profile,
   type SocialPlatform,
 } from "@/lib/profiles";
+import { fetchFollowState, setFollow } from "@/lib/follows";
+import { formatFollowers } from "@/lib/format";
 import { fetchHallowBalance, fetchVaultState, formatTokenAmount } from "@/lib/vault";
 import { fetchChannelVideos, type Video } from "@/lib/videos";
 
@@ -28,13 +31,14 @@ const tabs = ["Haunts", "About"] as const;
 type Tab = (typeof tabs)[number];
 
 export function ChannelView({ handle }: { handle: string }) {
-  const { user, ready, applyProfile } = useAuth();
+  const { user, ready, applyProfile, login } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Video[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
   const [tab, setTab] = useState<Tab>("Haunts");
   const [editing, setEditing] = useState(false);
-  const [following, setFollowing] = useState(false);
+  const [crowd, setCrowd] = useState<{ id: string; followers: number; following: boolean } | null>(null);
+  const [followNote, setFollowNote] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -59,6 +63,18 @@ export function ChannelView({ handle }: { handle: string }) {
       active = false;
     };
   }, [handle]);
+
+  const creatorId = profile?.privy_id ?? null;
+  useEffect(() => {
+    if (!creatorId) return;
+    let cancelled = false;
+    fetchFollowState(creatorId, user?.id ?? null).then((next) => {
+      if (!cancelled && next) setCrowd({ id: creatorId, ...next });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [creatorId, user?.id]);
 
   function rememberFile(file: File, kind: "avatar" | "banner") {
     const url = URL.createObjectURL(file);
@@ -136,6 +152,12 @@ export function ChannelView({ handle }: { handle: string }) {
             @{profile.username}
             <span className="px-1.5">·</span>
             {visible.length} {visible.length === 1 ? "haunt" : "haunts"}
+            {crowd?.id === profile.privy_id ? (
+              <>
+                <span className="px-1.5">·</span>
+                {formatFollowers(crowd.followers)} {crowd.followers === 1 ? "follower" : "followers"}
+              </>
+            ) : null}
           </p>
           {profile.evm_wallet ? <WalletLine address={profile.evm_wallet} /> : null}
           {showEditor ? null : <ChannelCopy profile={profile} onMore={() => setTab("About")} />}
@@ -155,10 +177,31 @@ export function ChannelView({ handle }: { handle: string }) {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setFollowing((value) => !value)}
-                className={`h-9 rounded-full px-4 text-sm font-semibold ${following ? "bg-foreground/5 text-muted" : "bg-foreground text-background"}`}
+                onClick={() => {
+                  if (!user) {
+                    login();
+                    return;
+                  }
+                  const next = !crowd?.following;
+                  setFollowNote(null);
+                  setCrowd((current) =>
+                    current && current.id === profile.privy_id
+                      ? { ...current, following: next, followers: Math.max(0, current.followers + (next ? 1 : -1)) }
+                      : current,
+                  );
+                  void setFollow(user.id, profile.privy_id, next).then((error) => {
+                    if (!error) return;
+                    setFollowNote(error);
+                    setCrowd((current) =>
+                      current && current.id === profile.privy_id
+                        ? { ...current, following: !next, followers: Math.max(0, current.followers + (next ? -1 : 1)) }
+                        : current,
+                    );
+                  });
+                }}
+                className={`h-9 rounded-full px-4 text-sm font-semibold ${crowd?.following ? "bg-foreground/5 text-muted" : "bg-foreground text-background"}`}
               >
-                {following ? "Following" : "Follow"}
+                {crowd?.following ? "Following" : "Follow"}
               </button>
               <button
                 type="button"
@@ -172,6 +215,7 @@ export function ChannelView({ handle }: { handle: string }) {
           ) : null}
         </div>
       </div>
+      {followNote ? <p className="mt-3 text-sm text-accent">{followNote}</p> : null}
       {giftOpen ? <GiftSheet creatorName={name} creatorHandle={profile.username} onClose={() => setGiftOpen(false)} /> : null}
 
       {showEditor ? (
@@ -609,7 +653,11 @@ function VideoCard({ post }: { post: Video }) {
       <Link href={`/watch/${post.id}`} className="mt-2 line-clamp-2 block text-sm font-medium hover:text-accent">
         {title}
       </Link>
-      <p className="mt-1 text-xs text-muted">{when}</p>
+      <p className="mt-1 text-xs text-muted">
+        {when}
+        <span className="px-1.5">·</span>
+        <ViewCount videoKey={post.id} />
+      </p>
     </article>
   );
 }

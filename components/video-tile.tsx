@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { VideoThumb } from "@/components/reel-video";
 import { timeAgo, type Video } from "@/lib/videos";
+import { ViewCount } from "@/components/view-count";
 
 export function VideoTile({ video, showCreator = true, wide = false }: { video: Video; showCreator?: boolean; wide?: boolean }) {
   return (
@@ -21,6 +22,8 @@ export function VideoTile({ video, showCreator = true, wide = false }: { video: 
         <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 text-xs font-semibold text-white">
           <PlayIcon />
           {timeAgo(video.createdAt)}
+          <span className="px-1">·</span>
+          <ViewCount videoKey={video.id} />
         </span>
       </Link>
       <Link href={`/watch/${video.id}`} className="mt-2 line-clamp-2 text-sm leading-5 font-medium hover:text-accent">

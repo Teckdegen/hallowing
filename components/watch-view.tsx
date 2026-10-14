@@ -14,6 +14,8 @@ import { fetchProfilesByWallets } from "@/lib/profiles";
 import { markSeen } from "@/lib/seen";
 import { fetchGiftEvents, type GiftEvent } from "@/lib/vault";
 import { fetchCreatorVideos, fetchVideo, timeAgo, type Video } from "@/lib/videos";
+import { notifyView, ViewCount } from "@/components/view-count";
+import { recordView, viewerKey } from "@/lib/views";
 
 export function WatchView({ id }: { id: string }) {
   const { user, ready } = useAuth();
@@ -39,6 +41,15 @@ export function WatchView({ id }: { id: string }) {
       cancelled = true;
     };
   }, [id, ready, viewer]);
+
+  useEffect(() => {
+    if (!video) return;
+    const who = viewerKey(viewer);
+    if (!who) return;
+    void recordView(video.id, who).then((fresh) => {
+      if (fresh) notifyView(video.id);
+    });
+  }, [video, viewer]);
 
   if (video === undefined) return <WatchSkeleton />;
   if (video === null) return <MissingVideo />;
@@ -86,7 +97,9 @@ export function WatchView({ id }: { id: string }) {
 
           <section className="rounded-2xl bg-card px-4 py-4">
             <h2 className="text-xs font-semibold text-muted">
-              {`Posted ${timeAgo(video.createdAt)}`}
+              Posted {timeAgo(video.createdAt)}
+              <span className="px-1.5">·</span>
+              <ViewCount videoKey={video.id} />
             </h2>
             {video.description ? <p className="mt-2 max-w-2xl text-sm leading-6 whitespace-pre-wrap">{video.description}</p> : null}
           </section>

@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ReelActions } from "@/components/reel-actions";
 import { ReelVideo } from "@/components/reel-video";
+import { useAuth } from "@/components/auth-provider";
+import { notifyView, ViewCount } from "@/components/view-count";
 import { markSeen } from "@/lib/seen";
+import { recordView, viewerKey } from "@/lib/views";
 import { timeAgo, type Video } from "@/lib/videos";
 
 export function ReelFeed({
@@ -80,6 +83,7 @@ export function ReelFeed({
 
 function ReelSlide({ video, itemIndex, active, near }: { video: Video; itemIndex: number; active: boolean; near: boolean }) {
   const [paused, setPaused] = useState(false);
+  const { user } = useAuth();
   const { creator } = video;
 
   useEffect(() => {
@@ -88,9 +92,16 @@ function ReelSlide({ video, itemIndex, active, near }: { video: Video; itemIndex
 
   useEffect(() => {
     if (!active) return;
-    const timer = window.setTimeout(() => markSeen(video.id), 2000);
+    const timer = window.setTimeout(() => {
+      markSeen(video.id);
+      const who = viewerKey(user?.id ?? null);
+      if (!who) return;
+      void recordView(video.id, who).then((fresh) => {
+        if (fresh) notifyView(video.id);
+      });
+    }, 2000);
     return () => window.clearTimeout(timer);
-  }, [active, video.id]);
+  }, [active, user?.id, video.id]);
 
   return (
     <section data-reel={itemIndex} className="relative h-full snap-start snap-always bg-black">
@@ -129,7 +140,11 @@ function ReelSlide({ video, itemIndex, active, near }: { video: Video; itemIndex
               ))}
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-white/50">{timeAgo(video.createdAt)}</p>
+          <p className="mt-1 text-xs text-white/50">
+            {timeAgo(video.createdAt)}
+            <span className="px-1">·</span>
+            <ViewCount videoKey={video.id} />
+          </p>
           <Link
             href={`/watch/${video.id}`}
             className="mt-3 inline-flex rounded-full bg-accent px-3 py-2 text-xs font-semibold text-[#1a0c08] hover:brightness-110 sm:text-sm"

@@ -159,6 +159,45 @@ create policy "likes are readable" on public.video_likes for select using (true)
 create policy "likes can be saved" on public.video_likes for insert with check (true);
 create policy "likes can be removed" on public.video_likes for delete using (true);
 
+-- Who follows whom. follower_id and following_id are Privy ids.
+create table if not exists public.follows (
+  follower_id text not null,
+  following_id text not null,
+  created_at timestamptz not null default now(),
+  primary key (follower_id, following_id),
+  constraint follows_not_self check (follower_id <> following_id)
+);
+
+create index if not exists follows_following_idx on public.follows (following_id);
+
+-- One view per person (or browser, when logged out) per haunt.
+create table if not exists public.video_views (
+  video_key text not null,
+  viewer text not null,
+  created_at timestamptz not null default now(),
+  primary key (video_key, viewer)
+);
+
+create index if not exists video_views_video_idx on public.video_views (video_key);
+
+alter table public.follows enable row level security;
+alter table public.video_views enable row level security;
+
+grant select, insert, delete on public.follows to anon, authenticated;
+grant select, insert on public.video_views to anon, authenticated;
+
+drop policy if exists "follows are readable" on public.follows;
+drop policy if exists "follows can be saved" on public.follows;
+drop policy if exists "follows can be removed" on public.follows;
+drop policy if exists "views are readable" on public.video_views;
+drop policy if exists "views can be saved" on public.video_views;
+
+create policy "follows are readable" on public.follows for select using (true);
+create policy "follows can be saved" on public.follows for insert with check (true);
+create policy "follows can be removed" on public.follows for delete using (true);
+create policy "views are readable" on public.video_views for select using (true);
+create policy "views can be saved" on public.video_views for insert with check (true);
+
 insert into storage.buckets (id, name, public)
 values ('videos', 'videos', true)
 on conflict (id) do nothing;

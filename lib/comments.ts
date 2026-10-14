@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/client";
 import { supabaseEnv } from "@/lib/supabase/env";
+import { fetchProfilesBy, publicMediaUrl } from "@/lib/profiles";
 
 export type VideoComment = {
   id: string;
   video_key: string;
   username: string;
+  avatar: string | null;
   body: string;
   created_at: string;
 };
@@ -39,12 +41,28 @@ export async function fetchComments(videoKey: string) {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("comments")
-    .select("id, video_key, username, body, created_at")
+    .select("id, video_key, privy_id, username, body, created_at")
     .eq("video_key", videoKey)
     .order("created_at", { ascending: false })
     .limit(100);
   if (error) return { comments: [] as VideoComment[], error: "Could not load comments." };
-  return { comments: (data ?? []) as VideoComment[], error: null };
+  const rows = (data ?? []) as (Omit<VideoComment, "avatar"> & { privy_id: string })[];
+  const profiles = await fetchProfilesBy("privy_id", Array.from(new Set(rows.map((row) => row.privy_id))));
+  const byId = new Map(profiles.map((profile) => [profile.privy_id, profile]));
+  return {
+    comments: rows.map((row) => {
+      const profile = byId.get(row.privy_id);
+      return {
+        id: row.id,
+        video_key: row.video_key,
+        username: profile?.username ?? row.username,
+        avatar: profile ? publicMediaUrl("images", profile.avatar_path) : null,
+        body: row.body,
+        created_at: row.created_at,
+      };
+    }),
+    error: null,
+  };
 }
 
 export async function postComment(input: { videoKey: string; privyId: string; username: string; body: string }) {

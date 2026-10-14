@@ -1,217 +1,116 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Eyebrow, HauntSky } from "@/components/haunt";
 import { giftImage, gifts, shortTokens } from "@/lib/gifts";
 
 export const metadata: Metadata = {
   title: "How it works",
-  description: "One Hallowing season, from the first prank to the midnight split. Post, get found, get gifted, and share the pot.",
+  description: "How a Hallowing season works: post a haunt, get gifted, and split the pot at midnight.",
 };
 
-const night = [
-  {
-    hour: "Dusk",
-    phase: 0.15,
-    title: "Post your best prank",
-    body: "Upload a haunt, up to 1:30, give it a caption and a few tags, and choose who can comment. Your channel keeps every haunt you post this season.",
-    detail: "Harmless pranks travel furthest. The reveal is the moment people replay.",
-  },
-  {
-    hour: "Moonrise",
-    phase: 0.45,
-    title: "Haunt the feed",
-    body: "Home is an endless reel. The video in front of you plays with sound, a tap in the center pauses it, and a swipe brings the next scare. Likes, comments, and shares sit beside every video.",
-    detail: "Follows and comments build your crowd. Your crowd is who gifts you next.",
-  },
-  {
-    hour: "Full moon",
-    phase: 1,
-    title: "Fans send gifts",
-    body: "Anyone holding HALLOW taps Gift beside a video, picks from ten Hallowing gifts, sets how many, and sends. Every gift adds its HALLOW value to that creator's total and moves them up the board.",
-    detail: "After sending, share it to X, Threads, Instagram, and more. We tag the creator on that platform for you.",
-  },
-  {
-    hour: "Midnight",
-    phase: 0.62,
-    title: "The split",
-    body: "When the season clock hits zero, gifting closes and the board freezes. The top 10 share 80% of the pot, each sized by the gifts they pulled in. The other 20% stays in the vault.",
-    detail: "Anyone can ring the midnight bell with Split top 10 on the leaderboard once the season closes.",
-  },
-] as const;
-
-const rules = [
-  { title: "Keep it kind", body: "Everyone laughs at the end, including the person who got pranked." },
-  { title: "Real reactions", body: "Staged is fine when you say so in the caption. Fans love honesty." },
-  { title: "Safe scares", body: "No danger, no damage, no one hurt. Spooky beats risky every time." },
-  { title: "Credit the crew", body: "Tag the people who helped. Good crews get gifted together." },
-] as const;
-
-const whispers = [
-  {
-    q: "How long is a season?",
-    a: "Each season has its own clock. The countdown on the leaderboard shows exactly when gifting closes.",
-  },
-  {
-    q: "How do I climb the board?",
-    a: "Rank comes from the total HALLOW value of the gifts you receive. Post often, reply to comments, and share your videos so fans find the Gift button.",
-  },
-  {
-    q: "How is my share worked out?",
-    a: "Add up the gift value held by the top 10. Your slice of the 80% matches your slice of that total.",
-  },
-  {
-    q: "Who sees the top 100?",
-    a: "Everyone. The leaderboard lists the 100 most gifted creators, ten per page, with a payout line under tenth place. Filter by any gift to see who gets the most Haunted Manors or Candy Corns.",
-  },
-  {
-    q: "What happens to my channel after the season?",
-    a: "Your videos, followers, and comments stay on your channel, ready for the next season.",
-  },
+const contents = [
+  { href: "#post", label: "Post a haunt" },
+  { href: "#feed", label: "The feed" },
+  { href: "#gifts", label: "Gifts" },
+  { href: "#split", label: "The split" },
+  { href: "#rules", label: "House rules" },
+  { href: "#after", label: "After midnight" },
 ] as const;
 
 export default function HowItWorksPage() {
   return (
-    <HauntSky>
-      <main className="mx-auto w-full max-w-3xl px-4 pt-10 pb-20 sm:px-6 sm:pt-14">
-        <Eyebrow>A season on Hallowing</Eyebrow>
-        <h1 className="mt-4 max-w-xl text-4xl leading-[1.05] font-semibold tracking-tight sm:text-5xl">
-          One night.
-          <br />
-          <span className="text-accent">Four moons.</span>
-        </h1>
-        <p className="mt-5 max-w-lg text-base leading-7 text-muted">
-          Every Hallowing season plays out like a long night. Creators post their funniest pranks, fans gift the ones they love, and at midnight the top 10 split the pot.
-        </p>
+    <main className="mx-auto w-full max-w-2xl px-5 pt-10 pb-24 sm:px-6 sm:pt-14">
+      <p className="text-sm text-muted">How it works</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">A season on Hallowing</h1>
+      <p className="mt-4 text-base leading-7 text-foreground/80">
+        You post a short haunt, people watch it, and the ones they love get gifts in HALLOW. When the season clock hits zero, the top 10 split most of the pot. Your channel stays up after that.
+      </p>
 
-        <ol className="relative mt-14">
-          <span className="absolute top-6 bottom-6 left-6 w-px bg-gradient-to-b from-accent/70 via-line to-accent/40" aria-hidden />
-          {night.map((step, index) => (
-            <li key={step.hour} className="relative flex gap-4 pb-8 last:pb-0 sm:gap-6">
-              <MoonPhase lit={step.phase} id={`moon-${index}`} />
-              <div className="min-w-0 flex-1 rounded-3xl border border-line bg-card/80 p-5 backdrop-blur sm:p-6">
-                <p className="text-[11px] font-semibold tracking-[0.2em] text-accent uppercase">
-                  {String(index + 1).padStart(2, "0")} Â· {step.hour}
-                </p>
-                <h2 className="mt-2 text-xl font-semibold tracking-tight">{step.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-muted">{step.body}</p>
-                <p className="mt-4 border-l-2 border-accent/60 pl-3 text-sm leading-6 text-foreground/85">{step.detail}</p>
-              </div>
+      <nav aria-label="On this page" className="mt-8 border-y border-line py-4">
+        <p className="text-xs font-semibold tracking-wide text-muted uppercase">On this page</p>
+        <ol className="mt-2 space-y-1 text-sm">
+          {contents.map((item) => (
+            <li key={item.href}>
+              <a href={item.href} className="text-foreground/80 hover:text-accent">
+                {item.label}
+              </a>
             </li>
           ))}
         </ol>
+      </nav>
 
-        <section className="mt-16" aria-labelledby="gifts-title">
-          <Eyebrow>The gift list</Eyebrow>
-          <h2 id="gifts-title" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Ten ways to say boo
-          </h2>
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {gifts.map((gift) => (
-              <li key={gift.id} className="flex flex-col items-center rounded-3xl border border-line bg-card/80 px-2 pt-3 pb-4 text-center backdrop-blur">
-                <img src={giftImage(gift)} alt="" width={256} height={256} className="size-16" />
-                <p className="mt-2 text-sm font-medium">{gift.name}</p>
-                <p className="text-xs text-muted tabular-nums">{shortTokens(gift.price)} HALLOW</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <section id="post" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">Post a haunt</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          A haunt is a clip of 1:30 or shorter. Open Upload a haunt, drop the file in, and give it a title, a caption, and a few tags. Then choose who can comment and who can watch. It lands on your channel and, if you set it to public, in the feed.
+        </p>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Harmless pranks travel furthest. The reveal is the part people replay. If a scare is staged, say so in the caption. Tag the people who helped. A good crew gets gifted together.
+        </p>
+      </section>
 
-        <section className="mt-16" aria-labelledby="pot-title">
-          <Eyebrow>The pot</Eyebrow>
-          <h2 id="pot-title" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-            How the split lands
-          </h2>
-          <div className="mt-6 rounded-3xl border border-line bg-card/80 p-5 backdrop-blur sm:p-6">
-            <div className="flex h-4 overflow-hidden rounded-full" aria-hidden>
-              <span className="w-4/5 bg-accent" />
-              <span className="w-1/5 bg-foreground/15" />
-            </div>
-            <div className="mt-3 flex justify-between text-sm">
+      <section id="feed" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">The feed</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Home is a reel. The haunt in front of you plays with sound. Tap the middle to pause it, and swipe for the next scare. Likes, comments, and shares sit beside it. A view counts once for each person: after the clip has been on screen for a couple of seconds in the feed, or as soon as they open the watch page.
+        </p>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Follows and comments are how a crowd finds you. That crowd is who sends gifts. Your follower count sits on your channel, under your name.
+        </p>
+      </section>
+
+      <section id="gifts" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">Gifts</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Anyone holding HALLOW taps Gift beside a haunt, picks one of the ten gifts below, sets how many, and sends. The HALLOW value lands on that creator and moves them up the board. After sending, they can share it to X, Threads, Instagram, and the rest. We tag the creator on that platform.
+        </p>
+        <ul className="mt-5 space-y-3">
+          {gifts.map((gift) => (
+            <li key={gift.id} className="flex items-center gap-3 text-base leading-7">
+              <img src={giftImage(gift)} alt="" width={32} height={32} className="size-8 shrink-0" />
               <span>
-                <span className="font-semibold text-accent">80%</span> to the top 10
+                <span className="font-medium">{gift.name}</span>
+                <span className="text-muted">, {shortTokens(gift.price)} HALLOW</span>
               </span>
-              <span className="text-muted">20% stays in the vault</span>
-            </div>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat value="10M" label="HALLOW in the pot" />
-              <Stat value="8M" label="shared by the top 10" />
-              <Stat value="2M" label="for a creator holding 25% of top 10 gifts" />
-            </div>
-          </div>
-        </section>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <section className="mt-16" aria-labelledby="rules-title">
-          <Eyebrow>House rules</Eyebrow>
-          <h2 id="rules-title" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Pranks people replay
-          </h2>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {rules.map((rule) => (
-              <div key={rule.title} className="rounded-3xl border border-line bg-card/80 p-5 backdrop-blur">
-                <h3 className="font-semibold">{rule.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-muted">{rule.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+      <section id="split" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">The split</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Each season has its own clock. The countdown on the leaderboard is the moment gifting closes. When it hits zero, the board freezes. The top 10 share 80% of the pot, each sized by the gifts they pulled in. The other 20% stays in the vault.
+        </p>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Add up the gift value held by the top 10. Your slice of the 80% matches your slice of that total. If the pot were 10 million HALLOW and you held a quarter of the gifts among the top 10, your share would be 2 million. Anyone can ring the midnight bell with Split top 10 on the leaderboard once the season closes.
+        </p>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Everyone can see the board. It lists the 100 most gifted creators, ten per page, with a payout line under tenth place. Filter by a gift to see who receives the most of that one.
+        </p>
+      </section>
 
-        <section className="mt-16" aria-labelledby="whispers-title">
-          <Eyebrow>Whispers</Eyebrow>
-          <h2 id="whispers-title" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Things people ask at midnight
-          </h2>
-          <div className="mt-6 divide-y divide-line overflow-hidden rounded-3xl border border-line bg-card/80 backdrop-blur">
-            {whispers.map((item) => (
-              <details key={item.q} className="group px-5 py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
-                  {item.q}
-                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-foreground/5 text-muted transition-transform group-open:rotate-45">+</span>
-                </summary>
-                <p className="mt-2 text-sm leading-6 text-muted">{item.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+      <section id="rules" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">House rules</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Keep it kind. Everyone laughs at the end, including the person who got pranked. Real reactions are the point, and staged is fine when the caption says so. No danger, no damage, no one hurt. Spooky beats risky every time.
+        </p>
+      </section>
 
-        <div className="mt-16 flex flex-col items-center rounded-3xl border border-accent/30 bg-accent/[0.07] px-6 py-10 text-center">
-          <img src="/ghost.png" alt="" width={256} height={256} className="ghost-idle h-auto w-16" />
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight">The night is young</h2>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <Link href="/create" className="inline-flex h-10 items-center rounded-full bg-accent px-5 text-sm font-semibold text-[#1a0c08]">
-              Post a prank
-            </Link>
-            <Link href="/leaderboard" className="inline-flex h-10 items-center rounded-full border border-line bg-card px-5 text-sm font-medium">
-              See the board
-            </Link>
-          </div>
-        </div>
-      </main>
-    </HauntSky>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-2xl bg-foreground/[0.04] p-4">
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs leading-5 text-muted">{label}</p>
-    </div>
-  );
-}
-
-function MoonPhase({ lit, id }: { lit: number; id: string }) {
-  return (
-    <span className="relative z-10 grid size-12 shrink-0 place-items-center rounded-full border border-line bg-background" aria-hidden>
-      <svg width="30" height="30" viewBox="0 0 30 30">
-        <defs>
-          <clipPath id={id}>
-            <circle cx="15" cy="15" r="11" />
-          </clipPath>
-        </defs>
-        <circle cx="15" cy="15" r="11" fill="#f2b980" />
-        <circle cx={15 - lit * 22} cy="15" r="11" fill="var(--background)" clipPath={`url(#${id})`} opacity={lit === 1 ? 0 : 1} />
-        <circle cx="15" cy="15" r="11" fill="none" stroke="#f2b980" strokeOpacity="0.5" />
-      </svg>
-    </span>
+      <section id="after" className="mt-12 scroll-mt-20">
+        <h2 className="text-xl font-semibold tracking-tight">After midnight</h2>
+        <p className="mt-3 text-base leading-7 text-foreground/80">
+          Your haunts, followers, and comments stay on your channel, ready for the next season. Rank comes from the HALLOW value of the gifts you receive, so post often, reply to comments, and share your haunts so fans find the Gift button.
+        </p>
+        <p className="mt-6 text-base leading-7">
+          <Link href="/create" className="font-medium text-accent hover:underline">
+            Upload a haunt
+          </Link>
+          <span className="px-2 text-muted">·</span>
+          <Link href="/leaderboard" className="font-medium text-accent hover:underline">
+            See the board
+          </Link>
+        </p>
+      </section>
+    </main>
   );
 }
