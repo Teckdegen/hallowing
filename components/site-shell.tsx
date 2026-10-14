@@ -69,7 +69,7 @@ function ShellMain({ children }: { children: React.ReactNode }) {
 function MobileNav() {
   const pathname = usePathname();
   return (
-    <nav aria-label="Mobile" className="fixed inset-x-0 bottom-0 z-40 bg-black pb-[env(safe-area-inset-bottom)] lg:hidden">
+    <nav aria-label="Mobile" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
       <div className="grid h-14 grid-cols-5 items-center">
         {nav.map((item) => {
           const active = navActive(item, pathname);
@@ -93,7 +93,7 @@ function MobileNav() {
               href={item.href}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
-              className={`flex h-full flex-col items-center justify-center gap-1 text-[11px] leading-none font-medium whitespace-nowrap ${active ? "text-white" : "text-white/70"}`}
+              className={`flex h-full flex-col items-center justify-center gap-1 text-[11px] leading-none font-medium whitespace-nowrap ${active ? "text-foreground" : "text-muted"}`}
             >
               <NavIcon name={item.icon} size={22} />
               <span>{label}</span>
@@ -108,8 +108,8 @@ function MobileNav() {
 function CreateButton() {
   return (
     <span className="relative block h-7 w-11">
-      <span className="absolute top-0 left-0 h-7 w-9 rounded-lg bg-[#25F4EE]" />
-      <span className="absolute top-0 right-0 h-7 w-9 rounded-lg bg-[#FE2C55]" />
+      <span className="absolute top-0 left-0 h-7 w-9 rounded-lg bg-[#ffb067]" />
+      <span className="absolute top-0 right-0 h-7 w-9 rounded-lg bg-[#e8783a]" />
       <span className="absolute top-0 left-1/2 grid h-7 w-9 -translate-x-1/2 place-items-center rounded-lg bg-white">
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
           <path d="M9 4v10M4 9h10" stroke="#161616" strokeWidth="1.75" strokeLinecap="round" />
