@@ -41,7 +41,7 @@ const contents = [
   {
     href: "#split",
     title: "The top 10 split",
-    detail: "When the season ends, the ten winners share 80% of the pot.",
+    detail: "When the season ends, the ten winners share the season pot.",
   },
 ] as const;
 
@@ -52,10 +52,10 @@ export default function HowItWorksPage() {
       <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">A season on Hallowing</h1>
       <div className="mt-5 space-y-4 text-base leading-7 text-foreground/80">
         <p>
-          A season is one run of the clock. You post short haunts. People watch them, follow you, and send gifts paid in HALLOW on Robinhood Chain. The HALLOW they send is your score. The leaderboard ranks creators by that score and shows the time left.
+          A season is one run of the clock. You post short haunts. People watch them, follow you, and send gifts paid in HALLOW on Solana. Each gift is a HALLOW transfer into the Hallowing escrow wallet, and Supabase keeps who sent what to which creator. That total is your score. The leaderboard ranks creators by that score and shows the time left.
         </p>
         <p>
-          When that clock hits zero, gifting for the season stops. The ten creators with the highest scores are the winners. They split 80% of the HALLOW sitting in the vault. The walkthrough below is the whole path, from the first upload to that payout.
+          When that clock hits zero, gifting for the season stops. The top creators on the board go home with a share of the pot that built up in escrow. The walkthrough below is the whole path, from the first upload to that payout.
         </p>
       </div>
 
@@ -111,7 +111,7 @@ export default function HowItWorksPage() {
         <h2 className="text-xl font-semibold tracking-tight">Gifts</h2>
         <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
           <p>
-            Gift is the button beside a haunt. A fan picks one of the ten gifts, chooses how many (up to 99), and sends HALLOW from their wallet. The price below is for one gift. Two Pumpkin Puffs cost twice that. The total is added to your season score and you move up the board.
+            Gift is the button beside a haunt. A fan picks one of the ten gifts, chooses how many (up to 99), and sends that HALLOW amount from their Solana wallet into the Hallowing escrow. The price below is for one gift. Two Pumpkin Puffs cost twice that. The transfer is recorded for that creator (and the haunt, when you gift from a watch page), so your season score moves up the board.
           </p>
           <p>After a gift lands, the sender can share it to X, Threads, Instagram, and the other apps. That share tags you on the platform they pick.</p>
         </div>
@@ -131,7 +131,7 @@ export default function HowItWorksPage() {
       <section id="board" className="mt-12 scroll-mt-20">
         <h2 className="text-xl font-semibold tracking-tight">The board</h2>
         <p className="mt-3 text-base leading-7 text-foreground/80">
-          The leaderboard lists the 100 most gifted creators, ten to a page. The pot at the top is the HALLOW already in the vault. The countdown next to it is the close of the season. You can filter the list by a single gift to see who receives the most of that one. The payout itself is settled at the end, in the last section.
+          The leaderboard lists the 100 most gifted creators, ten to a page. The pot at the top is the HALLOW already gifted into escrow this season. The countdown next to it is the close of the season. You can filter the list by a single gift to see who receives the most of that one.
         </p>
       </section>
 
@@ -146,19 +146,10 @@ export default function HowItWorksPage() {
         <h2 className="text-xl font-semibold tracking-tight">The top 10 split</h2>
         <div className="mt-3 space-y-4 text-base leading-7 text-foreground/80">
           <p>
-            This is the end of a season. The countdown on the leaderboard reaches zero, the board freezes, and new gifts stop counting toward this pot. The winners are the ten creators with the most HALLOW gifted to them. Rank is that gift total.
+            This is the end of a season. The countdown on the leaderboard reaches zero, the board freezes, and new gifts stop counting toward this pot. The winners are the ten creators with the most HALLOW gifted to them. Rank is that gift total, tallied from the gifts table.
           </p>
           <p>
-            The pot is the HALLOW balance in the vault, which is every gift sent that season. The winners share 80% of that balance. The other 20% stays in the vault, along with any rounding dust.
-          </p>
-          <p>
-            Each winner is paid in proportion to the gifts they received, measured against the other nine. Add up the gift totals of the top 10. Your fraction of that sum is your fraction of the 80%.
-          </p>
-          <p>
-            Take a pot of 10,000,000 HALLOW. The prize is 8,000,000. If the top 10 together were gifted 4,000,000, and you were gifted 1,000,000 of that, you hold a quarter of the winners&apos; gifts. A quarter of 8,000,000 is 2,000,000 HALLOW, paid to you.
-          </p>
-          <p>
-            Places 11 through 100 stay on the board so people can see the season, and their channels stay up. The prize is paid to the ten winners. After the clock has hit zero, the leaderboard shows Split top 10. Any signed-in person can press it. It sends the prize out once, and then the button is gone.
+            The pot is every HALLOW gift that landed in escrow during the season. The top creators go home with a share of that pot. Places 11 through 100 stay on the board so people can see the season, and every channel stays up for the next run.
           </p>
           <p>
             Your haunts, follows, and comments remain on your channel for the next season. A new clock starts its own pot. Post often, reply to comments, and share the haunt so people can find Gift.

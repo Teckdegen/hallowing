@@ -3,7 +3,7 @@ import { LeaderboardView } from "@/components/leaderboard-view";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "Top 100 Hallowing creators by gifts. The top 10 split 80% of the vault when the period ends.",
+  description: "Top 100 Hallowing creators by HALLOW gifts on Solana. The top 10 share the season pot.",
 };
 
 export default function LeaderboardPage() {

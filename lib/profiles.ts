@@ -132,7 +132,7 @@ export async function fetchProfileByUsername(username: string) {
   return selectProfile("username", username);
 }
 
-export async function fetchProfilesBy(column: "evm_wallet" | "privy_id" | "username", values: string[]) {
+export async function fetchProfilesBy(column: "wallet" | "evm_wallet" | "privy_id" | "username", values: string[]) {
   if (!values.length || !supabaseEnv()) return [];
   const supabase = createClient();
   for (const columns of columnSets) {
@@ -143,7 +143,11 @@ export async function fetchProfilesBy(column: "evm_wallet" | "privy_id" | "usern
 }
 
 export function fetchProfilesByWallets(wallets: string[]) {
-  return fetchProfilesBy("evm_wallet", wallets);
+  return fetchProfilesBy("wallet", wallets);
+}
+
+export function fetchProfilesByIds(ids: string[]) {
+  return fetchProfilesBy("privy_id", ids);
 }
 
 export async function searchProfiles(query: string, limit = 12) {
@@ -176,7 +180,7 @@ export async function saveEvmWallet(privyId: string, evmWallet: string) {
   if (!supabaseEnv()) return { error: "Add the Supabase URL and key to .env.local to store this account." };
   const supabase = createClient();
   const { error } = await supabase.from("profiles").update({ evm_wallet: evmWallet }).eq("privy_id", privyId);
-  if (error) return { error: "Could not save your Robinhood wallet." };
+  if (error) return { error: "Could not save that wallet." };
   return { error: null };
 }
 

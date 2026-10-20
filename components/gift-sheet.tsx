@@ -1,24 +1,18 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { useSendTransaction } from "@privy-io/react-auth";
+import { useSignAndSendTransaction, useWallets } from "@privy-io/react-auth/solana";
 import { ActionButton } from "@/components/action-button";
 import { useAuth } from "@/components/auth-provider";
 import { BrandBadge, brandName } from "@/components/brand-icons";
 import { giftImage, giftLabel, gifts, maxGiftQuantity, shortTokens, type Gift } from "@/lib/gifts";
 import { fetchProfileByUsername, type Socials } from "@/lib/profiles";
 import { copiesCaption, creatorTag, giftShareText, shareHref, shareTargets, type ShareTarget } from "@/lib/share";
-import { buildGiftCalls, fetchTokenBalance, fetchVaultState, formatTokenAmount, wholeTokensToRaw } from "@/lib/vault";
+import { buildGiftTransfer } from "@/lib/solana-transfer";
+import { solanaChain } from "@/lib/solana";
+import { fetchHallowBalance, fetchVaultState, formatTokenAmount, wholeTokensToRaw } from "@/lib/vault";
 
 type Sent = { gift: Gift; quantity: number };
-
-/** Asks the server to cover network fees when the wallet is nearly empty. A failure here never blocks the gift. */
-async function ensureGas(token: string | null) {
-  if (!token) return;
-  try {
-    await fetch("/api/gas", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
-  } catch {}
-}
 
 export function GiftSheet({
   creatorName,
@@ -32,21 +26,23 @@ export function GiftSheet({
   onClose: () => void;
 }) {
   const { user, login, getToken } = useAuth();
-  const { sendTransaction } = useSendTransaction();
+  const { wallets } = useWallets();
+  const { signAndSendTransaction } = useSignAndSendTransaction();
   const titleId = useId();
   const [selected, setSelected] = useState<Gift>(gifts[0]);
   const [quantity, setQuantity] = useState(1);
   const [balance, setBalance] = useState<bigint | null>(null);
-  const [decimals, setDecimals] = useState(18);
+  const [decimals, setDecimals] = useState(6);
   const [prices, setPrices] = useState<bigint[] | null>(null);
-  const [creatorWallet, setCreatorWallet] = useState<string | null>(null);
   const [socials, setSocials] = useState<Socials>({});
   const [vaultOpen, setVaultOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [busy, setBusy] = useState("Approving");
   const [sent, setSent] = useState<Sent | null>(null);
+
+  const solanaWallet = wallets[0] ?? null;
+  const senderAddress = user?.wallet ?? solanaWallet?.address ?? null;
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -82,21 +78,20 @@ export function GiftSheet({
     Promise.all([fetchProfileByUsername(creatorHandle), fetchVaultState()])
       .then(async ([profile, state]) => {
         if (!active) return;
-        setCreatorWallet(profile?.evm_wallet ?? null);
         setSocials(profile?.socials ?? {});
         if (!state) {
           setBalance(BigInt(0));
-          setNotice("Gifting opens when the season vault goes live.");
+          setNotice("Gifting opens when the HALLOW escrow goes live.");
           setReady(true);
           return;
         }
-        const closed = state.settled || Date.now() / 1000 >= state.endsAt;
+        const closed = Date.now() / 1000 >= state.endsAt;
         setVaultOpen(!closed && state.giftsOn);
         if (closed) setNotice("This season has closed.");
         else if (!state.giftsOn) setNotice("Gifting turns on soon. Check back shortly.");
         setDecimals(state.decimals);
         setPrices(state.giftsOn ? state.prices : null);
-        const owned = user?.evmWallet && state.giftsOn ? await fetchTokenBalance(user.evmWallet, state.mint) : BigInt(0);
+        const owned = senderAddress && state.giftsOn ? ((await fetchHallowBalance(senderAddress))?.balance ?? BigInt(0)) : BigInt(0);
         if (!active) return;
         setBalance(owned);
         setReady(true);
@@ -109,35 +104,57 @@ export function GiftSheet({
     return () => {
       active = false;
     };
-  }, [creatorHandle, user?.evmWallet]);
+  }, [creatorHandle, senderAddress]);
 
   const unit = prices?.[selected.id] ?? wholeTokensToRaw(selected.price, decimals);
   const cost = unit * BigInt(quantity);
   const short = balance !== null && ready && vaultOpen && cost > balance;
-  const blocked = !ready || !vaultOpen || !creatorWallet || short || pending;
+  const blocked = !ready || !vaultOpen || short || pending || !solanaWallet;
 
   async function send() {
     if (!user) {
       login();
       return;
     }
-    if (!user.evmWallet || !creatorWallet || blocked) return;
+    if (!solanaWallet || !senderAddress || blocked) return;
     setPending(true);
     setNotice(null);
-    setBusy("Preparing");
     try {
-      await ensureGas(await getToken());
-      const calls = await buildGiftCalls(user.evmWallet, creatorWallet, selected.id, quantity, cost, videoKey);
-      for (let index = 0; index < calls.length; index += 1) {
-        setBusy(calls.length > 1 && index === 0 ? "Approving" : "Sending");
-        const call = calls[index];
-        await sendTransaction({ to: call.to, data: call.data, chainId: call.chainId }, { address: user.evmWallet });
-      }
+      const built = await buildGiftTransfer(senderAddress, selected.id, quantity);
+      const result = await signAndSendTransaction({
+        transaction: built.transaction,
+        wallet: solanaWallet,
+        chain: solanaChain(),
+        options: { optimisticBroadcast: true },
+      });
+      const signature = encodeSig(result.signature);
+      const token = await getToken();
+      const response = await fetch("/api/gifts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          signature,
+          giftId: selected.id,
+          quantity,
+          creatorUsername: creatorHandle,
+          videoKey: videoKey ?? null,
+          senderWallet: senderAddress,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error || "Could not record that gift.");
       setBalance((value) => (value === null ? value : value - cost));
       setSent({ gift: selected, quantity });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      setNotice(/insufficient funds|gas/i.test(message) ? "Your wallet needs a little ETH for network fees. Try again in a minute." : "Could not send that gift.");
+      setNotice(
+        /insufficient|0x1|custom program error: 0x1/i.test(message)
+          ? "Not enough HALLOW (or SOL for fees) for that gift."
+          : message || "Could not send that gift.",
+      );
     } finally {
       setPending(false);
     }
@@ -214,9 +231,7 @@ export function GiftSheet({
                 <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-foreground/[0.04] px-3 py-2.5">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{selected.name}</p>
-                    <p className="text-xs text-muted tabular-nums">
-                      {formatTokenAmount(cost, decimals)} HALLOW
-                    </p>
+                    <p className="text-xs text-muted tabular-nums">{formatTokenAmount(cost, decimals)} HALLOW</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1" role="group" aria-label="Quantity">
                     <button
@@ -247,7 +262,6 @@ export function GiftSheet({
                   Balance <span className="text-foreground tabular-nums">{balance === null ? "…" : `${formatTokenAmount(balance, decimals)} HALLOW`}</span>
                 </p>
                 {short ? <p className="mt-1.5 text-sm text-accent">Not enough HALLOW for that.</p> : null}
-                {vaultOpen && ready && !creatorWallet ? <p className="mt-1.5 text-sm text-muted">This creator is setting up gifts.</p> : null}
                 {notice ? (
                   <p className="mt-1.5 text-sm text-accent" role="alert">
                     {notice}
@@ -258,7 +272,7 @@ export function GiftSheet({
                   type="button"
                   pending={pending}
                   idle={`Send ${giftLabel(selected, quantity)}`}
-                  busy={busy}
+                  busy="Sending"
                   disabled={blocked && Boolean(user)}
                   onClick={() => void send()}
                   className="mt-4 h-12 w-full rounded-full bg-accent text-sm font-semibold text-[#1a0c08]"
@@ -359,6 +373,13 @@ function Shared({
       </div>
     </div>
   );
+}
+
+function encodeSig(bytes: Uint8Array) {
+  // bs58's CJS build exposes encode on `.default` under Node/Next interop.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require("bs58") as { encode?: (value: Uint8Array) => string; default?: { encode: (value: Uint8Array) => string } };
+  return (mod.encode ?? mod.default?.encode)?.(bytes) ?? Buffer.from(bytes).toString("base64");
 }
 
 function CloseIcon() {
