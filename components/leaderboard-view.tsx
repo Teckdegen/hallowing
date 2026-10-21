@@ -2,24 +2,29 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { useSendTransaction } from "@privy-io/react-auth";
+import { ActionButton } from "@/components/action-button";
 import { useAuth } from "@/components/auth-provider";
 import { Avatar } from "@/components/avatar";
 import { HauntSky } from "@/components/haunt";
 import { LeaderboardSkeleton } from "@/components/skeletons";
 import { giftImage, gifts, shortTokens, type Gift } from "@/lib/gifts";
 import { formatCompact } from "@/lib/format";
-import { publicMediaUrl, fetchProfilesByIds, type Profile } from "@/lib/profiles";
-import { fetchVaultState, formatWholeTokens, type BoardEntry, type VaultState } from "@/lib/vault";
+import { publicMediaUrl, fetchProfilesByWallets, type Profile } from "@/lib/profiles";
+import { buildSettleCall, fetchVaultState, formatTokenAmount, type BoardEntry, type VaultState } from "@/lib/vault";
 
 const pageSize = 10;
 const payoutSpots = 10;
 const medals = ["#e8b15a", "#cfd2d6", "#c46a32"];
 
 export function LeaderboardView() {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
+  const { sendTransaction } = useSendTransaction();
   const [state, setState] = useState<VaultState | null | undefined>(undefined);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [page, setPage] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [filter, setFilter] = useState<Gift | null>(null);
 
@@ -30,9 +35,9 @@ export function LeaderboardView() {
         if (!active) return;
         setState(next);
         if (!next) return;
-        const rows = await fetchProfilesByIds(next.entries.map((entry) => entry.creatorId));
+        const rows = await fetchProfilesByWallets(next.entries.map((entry) => entry.creator));
         if (!active) return;
-        setProfiles(Object.fromEntries(rows.map((profile) => [profile.privy_id, profile] as const)));
+        setProfiles(Object.fromEntries(rows.flatMap((profile) => (profile.evm_wallet ? [[profile.evm_wallet, profile] as const] : []))));
       })
       .catch(() => {
         if (active) setState(null);
@@ -55,14 +60,31 @@ export function LeaderboardView() {
   const score = (entry: BoardEntry) => (filter ? entry.received[filter.id] ?? BigInt(0) : entry.gifted);
   const pageCount = Math.max(1, Math.ceil(entries.length / pageSize));
   const visible = entries.slice(page * pageSize, page * pageSize + pageSize);
+  const decimals = state?.decimals ?? 18;
   const ended = state ? now / 1000 >= state.endsAt : false;
   const topTotal = board.slice(0, payoutSpots).reduce((sum, entry) => sum + entry.gifted, BigInt(0));
   const leader = entries[0] ? score(entries[0]) : BigInt(0);
-  const mine = user?.id ?? null;
+  const mine = user?.evmWallet?.toLowerCase();
 
   function choose(next: Gift | null) {
     setFilter(next);
     setPage(0);
+  }
+
+  async function split() {
+    if (!state || !user?.evmWallet || pending) return;
+    setPending(true);
+    setNotice(null);
+    try {
+      const call = await buildSettleCall();
+      await sendTransaction({ to: call.to, data: call.data, chainId: call.chainId }, { address: user.evmWallet });
+      setNotice("Rewards split across the top 10.");
+      setState(await fetchVaultState());
+    } catch {
+      setNotice("Could not split the rewards.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -72,10 +94,26 @@ export function LeaderboardView() {
         <p className="mt-2 text-sm text-muted">Top 100 creators by gifts</p>
 
         <dl className="mt-7 grid grid-cols-3 overflow-hidden rounded-2xl border border-line bg-card/80 backdrop-blur">
-          <Stat label="Pot" value={state ? formatWholeTokens(state.pool) : "0"} unit="HALLOW" accent />
+          <Stat label="Pot" value={state ? formatTokenAmount(state.pool, decimals) : "0"} unit="HALLOW" accent />
           <Stat label={ended ? "Season" : "Closes in"} value={state ? (ended ? "Closed" : countdown(state.endsAt * 1000 - now)) : "Soon"} divider />
-          <Stat label="Payout" value="Top 10" unit="season" divider />
+          <Stat label="Payout" value="Top 10" unit="80%" divider />
         </dl>
+
+        {state && ended && !state.settled && entries.length > 0 ? (
+          <ActionButton
+            type="button"
+            pending={pending}
+            idle="Split top 10"
+            busy="Splitting"
+            onClick={() => (user ? void split() : login())}
+            className="mt-5 h-10 rounded-full bg-accent px-5 text-sm font-semibold text-[#1a0c08]"
+          />
+        ) : null}
+        {notice ? (
+          <p className="mt-3 text-sm text-accent" role="alert">
+            {notice}
+          </p>
+        ) : null}
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <p className="min-w-0 truncate text-sm text-muted">{filter ? `Most ${filter.name} received` : "Most gifted overall"}</p>
@@ -107,14 +145,15 @@ export function LeaderboardView() {
                   const rank = page * pageSize + index + 1;
                   return (
                     <Row
-                      key={entry.creatorId}
+                      key={entry.creator}
                       entry={entry}
                       rank={rank}
-                      profile={profiles[entry.creatorId]}
+                      profile={profiles[entry.creator]}
+                      decimals={decimals}
                       gift={filter}
                       lead={leader > BigInt(0) ? Number((score(entry) * BigInt(1000)) / leader) / 10 : 0}
-                      payout={rank <= payoutSpots && topTotal > BigInt(0) ? Number((entry.gifted * BigInt(10000)) / topTotal) / 100 : null}
-                      you={Boolean(mine && entry.creatorId === mine)}
+                      payout={rank <= payoutSpots && topTotal > BigInt(0) ? Number((entry.gifted * BigInt(8000)) / topTotal) / 100 : null}
+                      you={Boolean(mine && entry.creator.toLowerCase() === mine)}
                       lastPaid={!filter && rank === payoutSpots && entries.length > payoutSpots}
                     />
                   );
@@ -317,6 +356,7 @@ function Row({
   entry,
   rank,
   profile,
+  decimals,
   gift,
   lead,
   payout,
@@ -326,20 +366,20 @@ function Row({
   entry: BoardEntry;
   rank: number;
   profile?: Profile;
+  decimals: number;
   gift: Gift | null;
   lead: number;
   payout: number | null;
   you: boolean;
   lastPaid: boolean;
 }) {
-  const handle = profile?.username ?? entry.username;
-  const name = profile ? profile.display_name?.trim() || profile.username : handle || shortWallet(entry.creatorId);
+  const name = profile ? profile.display_name?.trim() || profile.username : shortWallet(entry.creator);
   const medal = medals[rank - 1];
   const creator = (
     <span className="flex min-w-0 items-center gap-3">
       <Avatar
         src={profile ? publicMediaUrl("images", profile.avatar_path) : null}
-        seed={handle || entry.creatorId}
+        seed={profile?.username ?? entry.creator}
         alt=""
         className="size-10 shrink-0"
       />
@@ -348,7 +388,7 @@ function Row({
           <span className="truncate font-medium">{name}</span>
           {you ? <span className="shrink-0 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-[#1a0c08]">You</span> : null}
         </span>
-        {handle ? <span className="block truncate text-xs text-muted">@{handle}</span> : null}
+        {profile ? <span className="block truncate text-xs text-muted">@{profile.username}</span> : null}
       </span>
     </span>
   );
@@ -366,8 +406,8 @@ function Row({
         )}
       </td>
       <td className="py-3.5 pr-3">
-        {handle ? (
-          <Link href={`/creators/${handle}`} className="block hover:opacity-80">
+        {profile ? (
+          <Link href={`/creators/${profile.username}`} className="block hover:opacity-80">
             {creator}
           </Link>
         ) : (
@@ -380,7 +420,7 @@ function Row({
             <img src={giftImage(gift)} alt="" width={256} height={256} className="-my-1 size-6" />×{formatCompact(Number(entry.received[gift.id] ?? BigInt(0)))}
           </span>
         ) : (
-          <span className="block font-semibold tabular-nums">{formatWholeTokens(entry.gifted)}</span>
+          <span className="block font-semibold tabular-nums">{formatTokenAmount(entry.gifted, decimals)}</span>
         )}
         <span className="mt-1.5 ml-auto block h-1 w-full max-w-24 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
           <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.max(4, lead)}%` }} />

@@ -198,37 +198,6 @@ create policy "follows can be removed" on public.follows for delete using (true)
 create policy "views are readable" on public.video_views for select using (true);
 create policy "views can be saved" on public.video_views for insert with check (true);
 
--- Solana HALLOW gifts into the escrow wallet. One row per confirmed transfer.
-create table if not exists public.gifts (
-  id uuid primary key default gen_random_uuid(),
-  sender_privy_id text not null,
-  sender_wallet text not null,
-  creator_privy_id text not null,
-  creator_username text not null,
-  video_key text,
-  gift_id integer not null,
-  quantity integer not null,
-  amount_tokens numeric not null,
-  amount_raw text not null,
-  tx_signature text not null unique,
-  created_at timestamptz not null default now(),
-  constraint gifts_gift_id_check check (gift_id between 0 and 9),
-  constraint gifts_quantity_check check (quantity between 1 and 99),
-  constraint gifts_not_self check (sender_privy_id <> creator_privy_id)
-);
-
-create index if not exists gifts_creator_idx on public.gifts (creator_privy_id, created_at desc);
-create index if not exists gifts_video_idx on public.gifts (video_key, created_at desc);
-create index if not exists gifts_sender_idx on public.gifts (sender_privy_id, created_at desc);
-
-alter table public.gifts enable row level security;
-grant select on public.gifts to anon, authenticated;
--- Inserts go through the server secret key only.
-revoke insert, update, delete on public.gifts from anon, authenticated;
-
-drop policy if exists "gifts are readable" on public.gifts;
-create policy "gifts are readable" on public.gifts for select using (true);
-
 insert into storage.buckets (id, name, public)
 values ('videos', 'videos', true)
 on conflict (id) do nothing;

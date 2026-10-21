@@ -136,7 +136,7 @@ export function ChannelView({ handle }: { handle: string }) {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(232,120,58,0.55),transparent_58%),linear-gradient(100deg,#2a1812,#101010_55%,#1a120e)]" />
         )}
         {showEditor ? <ImageButton label="Change banner" className="absolute right-3 bottom-3" onPick={(file) => rememberFile(file, "banner")} /> : null}
-        <RankBadge creatorId={profile.privy_id} />
+        {profile.evm_wallet ? <RankBadge wallet={profile.evm_wallet} /> : null}
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -159,7 +159,7 @@ export function ChannelView({ handle }: { handle: string }) {
               </>
             ) : null}
           </p>
-          {profile.wallet ? <WalletLine address={profile.wallet} /> : null}
+          {profile.evm_wallet ? <WalletLine address={profile.evm_wallet} /> : null}
           {showEditor ? null : <ChannelCopy profile={profile} onMore={() => setTab("About")} />}
         </div>
         <div className="sm:pt-3">
@@ -495,24 +495,24 @@ function EditForm({
   );
 }
 
-function RankBadge({ creatorId }: { creatorId: string }) {
-  const [found, setFound] = useState<{ creatorId: string; rank: number | null } | null>(null);
-  const rank = found?.creatorId === creatorId ? found.rank : undefined;
+function RankBadge({ wallet }: { wallet: string }) {
+  const [found, setFound] = useState<{ wallet: string; rank: number | null } | null>(null);
+  const rank = found?.wallet === wallet ? found.rank : undefined;
 
   useEffect(() => {
     let cancelled = false;
     fetchVaultState()
       .then((state) => {
-        const index = state?.entries.findIndex((entry) => entry.creatorId === creatorId) ?? -1;
-        if (!cancelled) setFound({ creatorId, rank: index >= 0 ? index + 1 : null });
+        const index = state?.entries.findIndex((entry) => entry.creator.toLowerCase() === wallet.toLowerCase()) ?? -1;
+        if (!cancelled) setFound({ wallet, rank: index >= 0 ? index + 1 : null });
       })
       .catch(() => {
-        if (!cancelled) setFound({ creatorId, rank: null });
+        if (!cancelled) setFound({ wallet, rank: null });
       });
     return () => {
       cancelled = true;
     };
-  }, [creatorId]);
+  }, [wallet]);
 
   if (rank === undefined) return null;
   const top = rank !== null && rank <= 10;

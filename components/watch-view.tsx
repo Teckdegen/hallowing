@@ -8,10 +8,10 @@ import { CommentThread } from "@/components/comment-thread";
 import { GiftSheet } from "@/components/gift-sheet";
 import { WatchSkeleton } from "@/components/skeletons";
 import { VideoTile } from "@/components/video-tile";
+import { activeChain } from "@/lib/chain";
 import { giftImage, giftLabel, gifts } from "@/lib/gifts";
-import { fetchProfilesByIds } from "@/lib/profiles";
+import { fetchProfilesByWallets } from "@/lib/profiles";
 import { markSeen } from "@/lib/seen";
-import { explorerTxUrl } from "@/lib/solana";
 import { fetchGiftEvents, type GiftEvent } from "@/lib/vault";
 import { fetchCreatorVideos, fetchVideo, timeAgo, type Video } from "@/lib/videos";
 import { notifyView, ViewCount } from "@/components/view-count";
@@ -174,10 +174,10 @@ function GiftLog({ videoKey }: { videoKey: string }) {
       .then(async (next) => {
         if (cancelled) return;
         setEvents(next);
-        const senders = Array.from(new Set(next.map((event) => event.senderId)));
-        const profiles = await fetchProfilesByIds(senders);
+        const senders = Array.from(new Set(next.map((event) => event.sender)));
+        const profiles = await fetchProfilesByWallets(senders);
         if (cancelled) return;
-        setNames(new Map(profiles.map((profile) => [profile.privy_id, profile.username])));
+        setNames(new Map(profiles.flatMap((profile) => (profile.evm_wallet ? [[profile.evm_wallet.toLowerCase(), profile.username]] : []))));
       })
       .catch(() => {
         if (!cancelled) setEvents([]);
@@ -188,6 +188,7 @@ function GiftLog({ videoKey }: { videoKey: string }) {
   }, [videoKey]);
 
   if (!events?.length) return null;
+  const explorer = activeChain().blockExplorers?.default.url;
 
   return (
     <section>
@@ -195,7 +196,7 @@ function GiftLog({ videoKey }: { videoKey: string }) {
       <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
         {events.slice(0, 20).map((event) => {
           const gift = gifts[event.giftId];
-          const name = names.get(event.senderId);
+          const name = names.get(event.sender.toLowerCase());
           return (
             <li key={`${event.txHash}-${event.giftId}`} className="flex items-center gap-3 px-4 py-2.5 text-sm">
               {gift ? <img src={giftImage(gift)} alt="" width={36} height={36} className="size-9 shrink-0 object-contain" /> : null}
@@ -205,12 +206,12 @@ function GiftLog({ videoKey }: { videoKey: string }) {
                     @{name}
                   </Link>
                 ) : (
-                  <span className="font-semibold">{`${event.sender.slice(0, 4)}…${event.sender.slice(-4)}`}</span>
+                  <span className="font-semibold">{`${event.sender.slice(0, 6)}…${event.sender.slice(-4)}`}</span>
                 )}{" "}
                 <span className="text-muted">sent {gift ? giftLabel(gift, event.quantity) : "a gift"}</span>
               </span>
-              {event.txHash ? (
-                <a href={explorerTxUrl(event.txHash)} target="_blank" rel="noreferrer" className="shrink-0 text-xs text-muted hover:text-foreground">
+              {explorer && event.txHash ? (
+                <a href={`${explorer}/tx/${event.txHash}`} target="_blank" rel="noreferrer" className="shrink-0 text-xs text-muted hover:text-foreground">
                   View
                 </a>
               ) : null}
