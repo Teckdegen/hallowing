@@ -6,7 +6,7 @@ import { ActionButton } from "@/components/action-button";
 import { useAuth } from "@/components/auth-provider";
 import { BrandBadge, brandName } from "@/components/brand-icons";
 import { giftImage, giftLabel, gifts, maxGiftQuantity, shortTokens, type Gift } from "@/lib/gifts";
-import { fetchProfileByUsername, type Socials } from "@/lib/profiles";
+import { fetchProfileByUsername, isHouseAccount, type Socials } from "@/lib/profiles";
 import { copiesCaption, creatorTag, giftShareText, shareHref, shareTargets, type ShareTarget } from "@/lib/share";
 import { buildGiftCalls, fetchTokenBalance, fetchVaultState, formatTokenAmount, wholeTokensToRaw } from "@/lib/vault";
 
@@ -32,6 +32,7 @@ export function GiftSheet({
   const [decimals, setDecimals] = useState(18);
   const [prices, setPrices] = useState<bigint[] | null>(null);
   const [creatorWallet, setCreatorWallet] = useState<string | null>(null);
+  const [house, setHouse] = useState(false);
   const [socials, setSocials] = useState<Socials>({});
   const [vaultOpen, setVaultOpen] = useState(false);
   const [ready, setReady] = useState(false);
@@ -75,6 +76,7 @@ export function GiftSheet({
       .then(async ([profile, state]) => {
         if (!active) return;
         setCreatorWallet(profile?.evm_wallet ?? null);
+        setHouse(isHouseAccount(profile?.privy_id));
         setSocials(profile?.socials ?? {});
         if (!state) {
           setBalance(BigInt(0));
@@ -238,7 +240,11 @@ export function GiftSheet({
                   Balance <span className="text-foreground tabular-nums">{balance === null ? "…" : `${formatTokenAmount(balance, decimals)} HALLOW`}</span>
                 </p>
                 {short ? <p className="mt-1.5 text-sm text-accent">Not enough HALLOW for that.</p> : null}
-                {vaultOpen && ready && !creatorWallet ? <p className="mt-1.5 text-sm text-muted">This creator is setting up gifts.</p> : null}
+                {house ? (
+                  <p className="mt-1.5 text-sm text-muted">This is a Hallowing house account sharing free clips, so it can&apos;t receive gifts.</p>
+                ) : vaultOpen && ready && !creatorWallet ? (
+                  <p className="mt-1.5 text-sm text-muted">This creator is setting up gifts.</p>
+                ) : null}
                 {notice ? (
                   <p className="mt-1.5 text-sm text-accent" role="alert">
                     {notice}

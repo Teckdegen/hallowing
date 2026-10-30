@@ -77,6 +77,11 @@ export function channelName(profile: Pick<Profile, "display_name" | "username">)
   return name || profile.username;
 }
 
+/** Hallowing-run accounts that share free-license clips. They have no wallet and never take gifts. */
+export function isHouseAccount(privyId: string | null | undefined) {
+  return Boolean(privyId?.startsWith("house:"));
+}
+
 export function publicMediaUrl(bucket: "images" | "videos", path: string | null) {
   if (!path || !supabaseEnv()) return null;
   const supabase = createClient();
