@@ -169,7 +169,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
         ) : null}
         <Link href="/" className="flex shrink-0 items-center gap-2 pl-1" aria-label="Hallowing">
-          <img src="/ghost.png" alt="" width={256} height={256} data-ghost-home className="size-8 object-contain sm:size-9" />
+          <img src="/ghost-pixel.png" alt="" width={256} height={256} data-ghost-home className="size-8 object-contain [image-rendering:pixelated] sm:size-9" />
           <span className="hidden text-lg font-semibold tracking-tight sm:inline">Hallowing</span>
         </Link>
         <div className="hidden min-w-0 flex-1 justify-center px-2 sm:flex">
