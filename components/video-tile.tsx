@@ -31,7 +31,7 @@ export function VideoTile({ video, showCreator = true, wide = false }: { video: 
       </Link>
       {showCreator ? (
         <Link href={`/creators/${video.creator.username}`} className="mt-1.5 flex min-w-0 items-center gap-1.5 text-xs text-muted hover:text-foreground">
-          <Avatar src={video.creator.avatar} seed={video.creator.username} className="size-5" />
+          <Avatar src={video.creator.avatar} className="size-5" />
           <span className="truncate">{video.creator.name}</span>
         </Link>
       ) : null}

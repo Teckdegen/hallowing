@@ -65,7 +65,7 @@ export function WatchView({ id }: { id: string }) {
             <div className="min-w-0">
               <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{video.title}</h1>
               <Link href={`/creators/${creator.username}`} className="mt-3 flex w-fit max-w-full items-center gap-3">
-                <Avatar src={creator.avatar} seed={creator.username} className="size-10" />
+                <Avatar src={creator.avatar} className="size-10" />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold">{creator.name}</span>
                   <span className="block truncate text-xs text-muted">@{creator.username}</span>

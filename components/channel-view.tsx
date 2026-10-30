@@ -141,7 +141,7 @@ export function ChannelView({ handle }: { handle: string }) {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="relative -mt-14 w-fit sm:-mt-16">
-          <Avatar src={avatar} seed={profile.username} alt={`${name} profile photo`} className="size-24 border-4 border-background sm:size-32" />
+          <Avatar src={avatar} alt={`${name} profile photo`} className="size-24 border-4 border-background sm:size-32" />
           {showEditor ? (
             <ImageButton label="Change photo" className="absolute right-1 bottom-1 grid size-8 place-items-center rounded-full border border-line bg-card text-foreground" icon onPick={(file) => rememberFile(file, "avatar")} />
           ) : null}

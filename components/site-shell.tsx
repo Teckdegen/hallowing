@@ -201,12 +201,12 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
                   aria-label={`${displayName} profile`}
                   className="flex min-w-0 items-center gap-2 rounded-full py-1 pr-2 pl-1 hover:bg-foreground/5"
                 >
-                  <Avatar src={avatarUrl} seed={user.username ?? user.wallet ?? user.id} className="size-8" />
+                  <Avatar src={avatarUrl} className="size-8" />
                   <span className="hidden max-w-28 truncate text-sm sm:block">{displayName}</span>
                 </Link>
               ) : (
                 <span className="flex min-w-0 items-center gap-2 py-1 pr-2 pl-1">
-                  <Avatar src={avatarUrl} seed={user.username ?? user.wallet ?? user.id} className="size-8" />
+                  <Avatar src={avatarUrl} className="size-8" />
                   <span className="hidden max-w-28 truncate text-sm sm:block">{displayName}</span>
                 </span>
               )}
@@ -297,7 +297,7 @@ function SidebarRecommended({ onNavigate }: { onNavigate: () => void }) {
               onClick={onNavigate}
               className="flex items-center gap-2.5 px-3 py-2 hover:bg-foreground/5"
             >
-              <Avatar src={creator.avatar} seed={creator.username} className="size-8" />
+              <Avatar src={creator.avatar} className="size-8" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm">{creator.name}</span>
                 <span className="block truncate text-xs text-muted">@{creator.username}</span>
@@ -312,7 +312,6 @@ function SidebarRecommended({ onNavigate }: { onNavigate: () => void }) {
 }
 
 function UsernameModal({ onSave }: { onSave: (username: string) => Promise<string | null> }) {
-  const { user } = useAuth();
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState("");
@@ -337,7 +336,7 @@ function UsernameModal({ onSave }: { onSave: (username: string) => Promise<strin
             });
           }}
         >
-          <Avatar src={null} seed={draft || user?.wallet || user?.id || ""} alt="" className="size-20" />
+          <Avatar src={null} alt="" className="size-20" />
           <input
             name="username"
             value={draft}

@@ -91,7 +91,7 @@ export function ReelActions({
           aria-label={creatorName}
           className="block rounded-full border-2 border-white shadow-lg"
         >
-          <Avatar src={creatorAvatar} seed={creatorHandle} className="size-11" />
+          <Avatar src={creatorAvatar} className="size-11" />
         </Link>
         <RailButton label={formatCompact(likes)} name={liked ? "Unlike" : "Like"} pressed={liked} onClick={() => void toggleLike()} icon={<HeartIcon filled={liked} />} />
         <RailButton label={formatCompact(commentCount)} name="Comments" pressed={open} onClick={() => setOpen(true)} icon={<CommentIcon />} />

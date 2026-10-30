@@ -379,7 +379,6 @@ function Row({
     <span className="flex min-w-0 items-center gap-3">
       <Avatar
         src={profile ? publicMediaUrl("images", profile.avatar_path) : null}
-        seed={profile?.username ?? entry.creator}
         alt=""
         className="size-10 shrink-0"
       />

@@ -69,7 +69,7 @@ export function CommentThread({
         <ul className="flex flex-col gap-4 pb-4">
           {comments?.map((comment) => (
             <li key={comment.id} className="flex gap-3">
-              <Avatar src={comment.avatar} seed={comment.username} alt="" className="size-9 shrink-0" />
+              <Avatar src={comment.avatar} alt="" className="size-9 shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm">
                   <Link href={`/creators/${comment.username}`} className="font-semibold hover:text-accent">
