@@ -76,7 +76,7 @@ export function BrowseView() {
                   href={`/creators/${creator.username}`}
                   className="flex w-36 flex-col items-center rounded-2xl border border-line bg-card px-3 pt-5 pb-4 text-center transition-colors hover:border-foreground/20 sm:w-40"
                 >
-                  <Avatar src={creator.avatar} className="size-16" />
+                  <Avatar src={creator.avatar} seed={creator.username} className="size-16" />
                   <span className="mt-3 w-full truncate text-sm font-semibold">{creator.name}</span>
                   <span className="w-full truncate text-xs text-muted">@{creator.username}</span>
                   <span className="mt-2 text-xs text-muted tabular-nums">

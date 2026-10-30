@@ -87,16 +87,9 @@ async function shrink(input, output) {
   ], { stdio: "ignore" });
 }
 
-const avatarPath = "house/ghost-pixel.png";
-const avatar = await supabase.storage.from("images").upload(avatarPath, fs.readFileSync(path.join(process.cwd(), "public", "ghost-pixel.png")), {
-  contentType: "image/png",
-  upsert: true,
-});
-if (avatar.error) throw new Error(`avatar: ${avatar.error.message}`);
-
 for (const account of accounts) {
   const { error } = await supabase.from("profiles").upsert(
-    { privy_id: `house:${account.username}`, wallet: "", username: account.username, display_name: account.display_name, bio: houseBio, avatar_path: avatarPath },
+    { privy_id: `house:${account.username}`, wallet: "", username: account.username, display_name: account.display_name, bio: houseBio },
     { onConflict: "privy_id" },
   );
   if (error) throw new Error(`profile ${account.username}: ${error.message}`);
